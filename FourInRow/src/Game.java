@@ -1,20 +1,29 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
+import java.util.Random;
 
 import javax.swing.*;
 
 public class Game extends JFrame {
-	// VERSION: 1.4
-	// LAST EDIT: 17.01.20
+	// VERSION: 1.6
+	// LAST EDIT: 22.01.20
 
 	// Free space - 0, Player one(RED) - 1, Player two(BLUE) - 2, Computer - 3
 	// HUMAN - 1, COMPUTER - 2
+	private static final int HUMAN_VS_HUMAN = 1;
+	private static final int HUMAN_VS_COMPUTER = 2;
+	private int gameType;
+	private int turn;
+
 	private final int FREE_SPACE = 0;
 	private final int PLAYER_ONE = 1;
 	private final int PLAYER_TWO = 2;
+
 	private final int COMPUTER = 3;
-	private int turn = 1;
+	private final int HUMAN = 4;
+
+	private int infinity = 100;
 
 	private int numOfRow;
 	private int numOfColumn;
@@ -23,30 +32,43 @@ public class Game extends JFrame {
 	private int[][] logicalBoard;
 	private int[] currentRowIndex;
 
-	public Game() {
+	// Builder for normal game(Human VS. Human / Human VS. Computer)
+	public Game(int gameType) {
+
+		Random rand = new Random();
+
 		this.numOfRow = 6;
 		this.numOfColumn = 7;
 		this.sequence = 4;
-				
+		this.turn = rand.nextInt(2 - 1 + 1) + 1;
+		this.gameType = gameType;
+
 		setTitle("FourInRow");
 		initBoard();
 		setSize(500, 500);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
-
 	}
+
+	// Builder for custom game.
 	public Game(int numOfRow, int numOfCoulmn, int sequence) {
+
+		Random rand = new Random();
+
 		this.numOfRow = numOfRow;
 		this.numOfColumn = numOfCoulmn;
 		this.sequence = sequence;
-		
+		this.turn = rand.nextInt(2 - 1 + 1) + 1;
+
 		setTitle("FourInRow");
 		initBoard();
-		setSize(500, 500);
+		setSize(numOfRow * 83, numOfCoulmn * 71);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
+
 	}
 
+	// Initializes the board
 	public void initBoard() {
 		ImageIcon icon = new ImageIcon("free_cell.jpg"); // Icon of free cell
 		Image img = icon.getImage();
@@ -74,6 +96,7 @@ public class Game extends JFrame {
 
 	}
 
+	// Open dialog that show who win the game with options to reset or exit.
 	public void winnerDialog(String winnerName) {
 		ImageIcon icon = new ImageIcon("trophy.png");
 		String[] options = { "Play again", "Exit" };
@@ -88,7 +111,7 @@ public class Game extends JFrame {
 
 		case 0:
 			dispose();
-			new Game(this.numOfRow,this.numOfColumn,this.sequence);
+			new Game(this.numOfRow, this.numOfColumn, this.sequence);
 			break;
 		case 1:
 			System.exit(0);
@@ -99,10 +122,9 @@ public class Game extends JFrame {
 		}
 	}
 
+	// Numbering the matrix row and column
 	public void createBorder() {
-		for (int borderUpdDown = 0; borderUpdDown < this.numOfColumn + 2; borderUpdDown++) // Numbering the matrix row
-		// and column
-		{
+		for (int borderUpdDown = 0; borderUpdDown < this.numOfColumn + 2; borderUpdDown++) {
 			logicalBoard[0][borderUpdDown] = 9;
 			logicalBoard[this.numOfRow + 1][borderUpdDown] = 9;
 
@@ -117,6 +139,9 @@ public class Game extends JFrame {
 		}
 	}
 
+	// Check if the board is full. False - return, True - Open dialog with options
+	// to reset / exit.
+	// Check if the board is full. False - exit, True - open dialog.
 	public void isBoardFull() {
 
 		for (int i = 1; i < this.numOfColumn + 1; i++) {
@@ -126,8 +151,8 @@ public class Game extends JFrame {
 		}
 		String[] options = { "Play again", "Exit" };
 
-		int response = JOptionPane.showOptionDialog(null, "The board is full.", "Game Settings",
-				JOptionPane.WARNING_MESSAGE, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+		int response = JOptionPane.showOptionDialog(null, "Tie", "The board is full", JOptionPane.WARNING_MESSAGE,
+				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
 		switch (response) {
 		case -1:
@@ -136,7 +161,7 @@ public class Game extends JFrame {
 
 		case 0:
 			dispose();
-			new Game();
+			new Game(this.gameType);
 			break;
 		case 1:
 			System.exit(0);
@@ -148,7 +173,7 @@ public class Game extends JFrame {
 
 	}
 
-	// Right
+	// Right.
 	public boolean checkRight(int row, int column, int player, String name) {
 
 		int count = 0;
@@ -167,7 +192,7 @@ public class Game extends JFrame {
 		return false;
 	}
 
-	// Left
+	// Left.
 	public boolean checkLeft(int row, int column, int player, String name) {
 		int count = 0;
 
@@ -187,7 +212,7 @@ public class Game extends JFrame {
 		return false;
 	}
 
-	// Down
+	// Down.
 	public boolean checkDown(int row, int column, int player, String name) {
 		int count = 0;
 		for (int funcRow = row; this.logicalBoard[funcRow][column + 1] == player; funcRow++) {
@@ -201,7 +226,7 @@ public class Game extends JFrame {
 		return false;
 	}
 
-	// (/) up
+	// (/) Up.
 	public boolean checkSlashUp(int row, int column, int player, String name) {
 		int count = 0;
 		for (int funcRow = row + 1, funcColumn = column; funcRow > 0
@@ -223,7 +248,7 @@ public class Game extends JFrame {
 		return false;
 	}
 
-	// (/) down
+	// (/) Down.
 	public boolean checkSlashDown(int row, int column, int player, String name) {
 		int count = 0;
 		for (int funcRow = row - 1, funcColumn = column + 2; funcRow < this.numOfRow + 1
@@ -243,7 +268,7 @@ public class Game extends JFrame {
 		return false;
 	}
 
-	// (\) up
+	// (\) Up.
 	public boolean checkBackSlashUp(int row, int column, int player, String name) {
 		int count = 0;
 
@@ -262,7 +287,7 @@ public class Game extends JFrame {
 		return false;
 	}
 
-	// (\) down
+	// (\) Down.
 	public boolean checkBackSlashDown(int row, int column, int player, String name) {
 		int count = 0;
 
@@ -281,6 +306,22 @@ public class Game extends JFrame {
 		return false;
 	}
 
+	// Group all the functions to check who win.
+	public boolean checkWinner(int column, int player, String name) {
+		if (checkRight(currentRowIndex[column], column, player, name)
+				|| checkRight(currentRowIndex[column], column, player, name)
+				|| checkDown(currentRowIndex[column], column, player, name)
+				|| checkSlashUp(currentRowIndex[column], column, player, name)
+				|| checkSlashDown(currentRowIndex[column], column, player, name)
+				|| checkBackSlashUp(currentRowIndex[column], column, player, name)
+				|| checkBackSlashDown(currentRowIndex[column], column, player, name)) {
+
+			return true;
+		}
+		return false;
+
+	}
+
 	class AL implements ActionListener {
 		private int row;
 		private int col;
@@ -293,27 +334,21 @@ public class Game extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			ImageIcon icon;
 			Image img;
-			if (turn == 1) {
-				icon = new ImageIcon("player_one_cell.jpg");
-				img = icon.getImage();
+			if (gameType == HUMAN_VS_HUMAN) {
 
-				if (currentRowIndex[this.col] > 0) {
+				if (turn == PLAYER_ONE && currentRowIndex[this.col] > 0) {
+					icon = new ImageIcon("player_one_cell.jpg");
+					img = icon.getImage();
+
 					logicalBoard[currentRowIndex[this.col]][this.col + 1] = PLAYER_ONE;
 					graphicsBoard[currentRowIndex[this.col] - 1][this.col].setImage(img);
 					repaint();
-					
 
 					System.out.println();
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkRight(currentRowIndex[this.col], this.col, PLAYER_ONE, "Player one")
-							|| checkLeft(currentRowIndex[this.col], this.col, PLAYER_ONE, "Player one")
-							|| checkDown(currentRowIndex[this.col], this.col, PLAYER_ONE, "Player one")
-							|| checkSlashUp(currentRowIndex[this.col], this.col, PLAYER_ONE, "Player one")
-							|| checkSlashDown(currentRowIndex[this.col], this.col, PLAYER_ONE, "Player one")
-							|| checkBackSlashUp(currentRowIndex[this.col], this.col, PLAYER_ONE, "Player one")
-							|| checkBackSlashDown(currentRowIndex[this.col], this.col, PLAYER_ONE, "Player one")) {
+					if (checkWinner(this.col, PLAYER_ONE, "Player one")) {
 
 						winnerDialog("Player one");
 						return;
@@ -323,28 +358,20 @@ public class Game extends JFrame {
 					isBoardFull();
 					System.out.println(Arrays.toString(currentRowIndex));
 					turn = 3 - turn;
-				}
-			} else {
-				icon = new ImageIcon("player_two_cell.jpg");
-				img = icon.getImage();
 
-				if (currentRowIndex[this.col] > 0) {
+				} else if (turn == PLAYER_TWO && currentRowIndex[this.col] > 0) {
+					icon = new ImageIcon("player_two_cell.jpg");
+					img = icon.getImage();
+
 					logicalBoard[currentRowIndex[this.col]][this.col + 1] = PLAYER_TWO;
 					graphicsBoard[currentRowIndex[this.col] - 1][this.col].setImage(img);
 					repaint();
-					
 
 					System.out.println();
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkRight(currentRowIndex[this.col], this.col, PLAYER_TWO, "Player two")
-							|| checkRight(currentRowIndex[this.col], this.col, PLAYER_TWO, "Player two")
-							|| checkDown(currentRowIndex[this.col], this.col, PLAYER_TWO, "Player two")
-							|| checkSlashUp(currentRowIndex[this.col], this.col, PLAYER_TWO, "Player two")
-							|| checkSlashDown(currentRowIndex[this.col], this.col, PLAYER_TWO, "Player two")
-							|| checkBackSlashUp(currentRowIndex[this.col], this.col, PLAYER_TWO, "Player two")
-							|| checkBackSlashDown(currentRowIndex[this.col], this.col, PLAYER_TWO, "Player two")) {
+					if (checkWinner(this.col, PLAYER_TWO, "Player two")) {
 
 						winnerDialog("Player two");
 						return;
@@ -355,8 +382,36 @@ public class Game extends JFrame {
 					System.out.println(Arrays.toString(currentRowIndex));
 					turn = 3 - turn;
 				}
-			}
 
+			} else {
+				turn = COMPUTER;
+				if (turn == HUMAN && currentRowIndex[this.col] > 0) {
+					icon = new ImageIcon("player_one_cell.jpg");
+					img = icon.getImage();
+
+					logicalBoard[currentRowIndex[this.col]][this.col + 1] = HUMAN;
+					graphicsBoard[currentRowIndex[this.col] - 1][this.col].setImage(img);
+					repaint();
+
+					System.out.println();
+					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
+							.replace("]]", "").replace(", ", " "));
+
+					if (checkWinner(this.col, HUMAN, "Human")) {
+
+						winnerDialog("Human");
+						return;
+					}
+
+					currentRowIndex[this.col]--;
+					isBoardFull();
+					System.out.println(Arrays.toString(currentRowIndex));
+					turn = 3 - turn;
+				} else if (turn == COMPUTER && currentRowIndex[this.col] > 0) {
+
+				}
+
+			}
 		}
 
 	}
