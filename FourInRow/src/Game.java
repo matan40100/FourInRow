@@ -59,6 +59,7 @@ public class Game extends JFrame {
 		this.numOfColumn = numOfCoulmn;
 		this.sequence = sequence;
 		this.turn = rand.nextInt(2 - 1 + 1) + 1;
+		this.gameType = HUMAN_VS_HUMAN;
 
 		setTitle("FourInRow");
 		initBoard();
