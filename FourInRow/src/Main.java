@@ -7,9 +7,15 @@ public class Main {
 	private static final int  HUMAN_VS_COMPUTER=2;
 	
 	public static void main(String[] args) {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		
-		ImageIcon icon = new ImageIcon("icon.png");
+		ImageIcon icon = new ImageIcon("images/icon.png");
 		String[] options = { "Normal game", "Human Vs Computer", "Custom game" };
 
 		int response = JOptionPane.showOptionDialog(null, "Choose game type:", "Game Settings",

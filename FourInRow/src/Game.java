@@ -6,8 +6,8 @@ import java.util.Random;
 import javax.swing.*;
 
 public class Game extends JFrame {
-	// VERSION: 1.7
-	// LAST EDIT: 24.01.20
+	// VERSION: 1.8
+	// LAST EDIT: 25.01.20
 
 	// Free space - 0, Player one(RED) - 1, Player two(BLUE) - 2, Computer - 3
 	// HUMAN - 1, COMPUTER - 2
@@ -30,7 +30,12 @@ public class Game extends JFrame {
 	private int[][] logicalBoard;
 	private int[] currentRowIndex;
 
-	// Builder for normal game(Human VS. Human / Human VS. Computer)
+	private Panel topPanel;
+	private Panel mainPanel;
+	private GridLayout gridLayout;
+	private JLabel turnIcon;
+
+	// Builder for normal game(Human VS. Human / Human VS. Computer).
 	public Game(int gameType) {
 
 		Random rand = new Random();
@@ -41,37 +46,75 @@ public class Game extends JFrame {
 		this.turn = rand.nextInt(2 - 1 + 1) + 1;
 		this.gameType = gameType;
 
-		setTitle("FourInRow");
 		initBoard();
-		setSize(500, 500);
+		setTitle("FourInRow");
+		setSize(this.numOfRow * 115, this.numOfColumn * 100);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
+
+		changeTurnIcon(turn);
 	}
 
 	// Builder for custom game.
-	public Game(int numOfRow, int numOfCoulmn, int sequence) {
+	public Game(int numOfRow, int numOfColumn, int sequence) {
 
 		Random rand = new Random();
 
 		this.numOfRow = numOfRow;
-		this.numOfColumn = numOfCoulmn;
+		this.numOfColumn = numOfColumn;
 		this.sequence = sequence;
 		this.turn = rand.nextInt(2 - 1 + 1) + 1;
 		this.gameType = HUMAN_VS_HUMAN;
 
-		setTitle("FourInRow");
 		initBoard();
-		setSize(numOfRow * 83, numOfCoulmn * 71);
+		setTitle("FourInRow");
+		setSize(this.numOfRow * 115, this.numOfColumn * 100);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
 
+		changeTurnIcon(turn);
+	}
+
+	// Change the icon turn every turn.
+	public void changeTurnIcon(int turn) {
+		ImageIcon icon;
+		Image img;
+		if (turn == 1) {
+			icon = new ImageIcon("images/player_one_icon.png");
+			img = icon.getImage().getScaledInstance(60, 60, icon.getImage().SCALE_SMOOTH);
+			this.turnIcon.setIcon(new ImageIcon(img));
+
+		} else {
+			icon = new ImageIcon("images/player_two_icon.png");
+			img = icon.getImage().getScaledInstance(60, 60, icon.getImage().SCALE_SMOOTH);
+			this.turnIcon.setIcon(new ImageIcon(img));
+
+		}
 	}
 
 	// Initializes the board
 	public void initBoard() {
-		ImageIcon icon = new ImageIcon("free_cell.jpg"); // Icon of free cell
-		Image img = icon.getImage();
+		ImageIcon icon;
+		Image img;
 
+		// Top panel
+		this.topPanel = new Panel();
+		this.topPanel.setBackground(Color.WHITE);
+		add(topPanel, BorderLayout.NORTH);
+
+		JLabel turnJLabel = new JLabel("Turn:");
+		turnJLabel.setFont(new Font("Arial", Font.BOLD, 40));
+		this.topPanel.add(turnJLabel);
+
+		this.turnIcon = new JLabel();
+		this.topPanel.add(turnIcon);
+
+		// Main panel
+		this.mainPanel = new Panel();
+		this.gridLayout = new GridLayout(this.numOfRow, this.numOfColumn);
+		add(mainPanel, BorderLayout.CENTER);
+		this.mainPanel.setLayout(gridLayout);
+		
 		this.currentRowIndex = new int[this.numOfColumn];
 		Arrays.fill(this.currentRowIndex, this.numOfRow - 1); // Initialize the array with the number of rows
 		System.out.println(Arrays.toString(this.currentRowIndex));
@@ -79,15 +122,17 @@ public class Game extends JFrame {
 		this.graphicsBoard = new Button[this.numOfRow][this.numOfColumn];
 		this.logicalBoard = new int[this.numOfRow][this.numOfColumn];
 
-		setLayout(new GridLayout(this.numOfRow, this.numOfColumn));
-
+		icon = new ImageIcon("images/free_cell.png");
+		img = icon.getImage();
+		
+		
+		//Fill the graphicsBoard with buttons.
 		for (int row = 0; row < this.numOfRow; row++) {
 			for (int column = 0; column < this.numOfColumn; column++) {
 
 				this.graphicsBoard[row][column] = new Button(img);
 				this.graphicsBoard[row][column].addActionListener(new AL(column));
-
-				add(this.graphicsBoard[row][column]);
+				this.mainPanel.add(this.graphicsBoard[row][column]);
 			}
 		}
 
@@ -95,7 +140,7 @@ public class Game extends JFrame {
 
 	// Open dialog that show who win the game with options to reset or exit.
 	public void winnerDialog(String winnerName) {
-		ImageIcon icon = new ImageIcon("trophy.png");
+		ImageIcon icon = new ImageIcon("images/trophy.png");
 		String[] options = { "Play again", "Exit" };
 
 		int response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
@@ -122,13 +167,13 @@ public class Game extends JFrame {
 	// Check if the board is full. False - exit, True - open dialog.
 	public void isBoardFull() {
 
-		for (int i = 1; i < this.numOfColumn + 1; i++) {
-			if (this.logicalBoard[1][i] == this.FREE_SPACE) {
+		for (int i = 0; i < this.numOfColumn; i++) {
+			if (this.logicalBoard[0][i] == this.FREE_SPACE) {
 				return;
 			}
 		}
+		
 		String[] options = { "Play again", "Exit" };
-
 		int response = JOptionPane.showOptionDialog(null, "Tie", "The board is full", JOptionPane.WARNING_MESSAGE,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
@@ -168,7 +213,6 @@ public class Game extends JFrame {
 					count = 0;
 				}
 			}
-
 		}
 		return false;
 	}
@@ -178,7 +222,6 @@ public class Game extends JFrame {
 		int count = 0;
 		int testRange = this.sequence - 3;
 		for (int funcColumn = column + testRange; funcColumn >= 0; funcColumn--) {
-			System.out.println(count);
 			if (funcColumn < this.numOfColumn) {
 
 				if (this.logicalBoard[row][funcColumn] == player) {
@@ -193,7 +236,6 @@ public class Game extends JFrame {
 					count = 0;
 				}
 			}
-
 		}
 		return false;
 	}
@@ -234,9 +276,7 @@ public class Game extends JFrame {
 				} else {
 					count = 0;
 				}
-
 			}
-
 		}
 		return false;
 	}
@@ -260,7 +300,6 @@ public class Game extends JFrame {
 					count = 0;
 				}
 			}
-
 		}
 		return false;
 	}
@@ -284,7 +323,6 @@ public class Game extends JFrame {
 					count = 0;
 				}
 			}
-
 		}
 		return false;
 	}
@@ -307,7 +345,6 @@ public class Game extends JFrame {
 					count = 0;
 				}
 			}
-
 		}
 		return false;
 	}
@@ -341,7 +378,58 @@ public class Game extends JFrame {
 			if (gameType == HUMAN_VS_HUMAN) {
 
 				if (turn == PLAYER_ONE && currentRowIndex[this.col] > -1) {
-					icon = new ImageIcon("player_one_cell.jpg");
+					icon = new ImageIcon("images/player_one.png");
+					img = icon.getImage();
+
+					logicalBoard[currentRowIndex[this.col]][this.col] = PLAYER_ONE;
+					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
+					graphicsBoard[currentRowIndex[this.col]][this.col].repaint();
+
+					System.out.println();
+					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
+							.replace("]]", "").replace(", ", " "));
+
+					if (checkWinner(this.col, PLAYER_ONE, "Player one")) {
+
+						winnerDialog("Player one");
+						return;
+					}
+					currentRowIndex[this.col]--;
+					isBoardFull();
+					System.out.println(Arrays.toString(currentRowIndex));
+					turn = 3 - turn;
+					changeTurnIcon(turn);
+
+				} else if (turn == PLAYER_TWO && currentRowIndex[this.col] > -1) {
+
+					icon = new ImageIcon("images/player_two.png");
+					img = icon.getImage();
+
+					logicalBoard[currentRowIndex[this.col]][this.col] = PLAYER_TWO;
+					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
+					graphicsBoard[currentRowIndex[this.col]][this.col].repaint();
+
+					System.out.println();
+					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
+							.replace("]]", "").replace(", ", " "));
+
+					if (checkWinner(this.col, PLAYER_TWO, "Player two")) {
+
+						winnerDialog("Player two");
+						return;
+					}
+
+					currentRowIndex[this.col]--;
+					isBoardFull();
+					System.out.println(Arrays.toString(currentRowIndex));
+					turn = 3 - turn;
+					changeTurnIcon(turn);
+				}
+
+			} else {
+				turn = COMPUTER;
+				if (turn == HUMAN && currentRowIndex[this.col] > -1) {
+					icon = new ImageIcon("images/player_one.png");
 					img = icon.getImage();
 
 					logicalBoard[currentRowIndex[this.col]][this.col] = PLAYER_ONE;
@@ -362,55 +450,7 @@ public class Game extends JFrame {
 					System.out.println(Arrays.toString(currentRowIndex));
 					turn = 3 - turn;
 
-				} else if (turn == PLAYER_TWO && currentRowIndex[this.col] > -1) {
-					icon = new ImageIcon("player_two_cell.jpg");
-					img = icon.getImage();
-
-					logicalBoard[currentRowIndex[this.col]][this.col] = PLAYER_TWO;
-					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
-					repaint();
-
-					System.out.println();
-					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
-							.replace("]]", "").replace(", ", " "));
-
-					if (checkWinner(this.col, PLAYER_TWO, "Player two")) {
-
-						winnerDialog("Player two");
-						return;
-					}
-
-					currentRowIndex[this.col]--;
-					isBoardFull();
-					System.out.println(Arrays.toString(currentRowIndex));
-					turn = 3 - turn;
-				}
-
-			} else {
-				turn = COMPUTER;
-				if (turn == HUMAN && currentRowIndex[this.col] > 0) {
-					icon = new ImageIcon("player_one_cell.jpg");
-					img = icon.getImage();
-
-					logicalBoard[currentRowIndex[this.col]][this.col + 1] = HUMAN;
-					graphicsBoard[currentRowIndex[this.col] - 1][this.col].setImage(img);
-					repaint();
-
-					System.out.println();
-					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
-							.replace("]]", "").replace(", ", " "));
-
-					if (checkWinner(this.col, HUMAN, "Human")) {
-
-						winnerDialog("Human");
-						return;
-					}
-
-					currentRowIndex[this.col]--;
-					isBoardFull();
-					System.out.println(Arrays.toString(currentRowIndex));
-					turn = 3 - turn;
-				} else if (turn == COMPUTER && currentRowIndex[this.col] > 0) {
+				} else if (turn == COMPUTER && currentRowIndex[this.col] > -1) {
 
 				}
 
