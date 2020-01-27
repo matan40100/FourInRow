@@ -48,7 +48,7 @@ public class Main {
 		JTextField numOfColumnfField = new JTextField();
 		JTextField numOfSequencefField = new JTextField();
 		final JComponent[] inputs = new JComponent[] { new JLabel("Type the number of row:"), numOfRowfField,
-				new JLabel("Type the number of column:"), numOfColumnfField, new JLabel("Type the number of sequence:"),
+				new JLabel("Type the number of column:"), numOfColumnfField, new JLabel("Type the number of sequence(4 and up):"),
 				numOfSequencefField };
 		int result = JOptionPane.showConfirmDialog(null, inputs, "Custom game", JOptionPane.PLAIN_MESSAGE);
 		if (result == JOptionPane.OK_OPTION) {

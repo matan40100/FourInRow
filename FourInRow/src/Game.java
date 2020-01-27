@@ -1,13 +1,15 @@
 import java.awt.*;
 import java.awt.event.*;
+
 import java.util.Arrays;
 import java.util.Random;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 
 public class Game extends JFrame {
-	// VERSION: 1.8
-	// LAST EDIT: 25.01.20
+	// VERSION: 1.9
+	// LAST EDIT: 27.01.20
 
 	// Free space - 0, Player one(RED) - 1, Player two(BLUE) - 2, Computer - 3
 	// HUMAN - 1, COMPUTER - 2
@@ -30,8 +32,8 @@ public class Game extends JFrame {
 	private int[][] logicalBoard;
 	private int[] currentRowIndex;
 
-	private Panel topPanel;
-	private Panel mainPanel;
+	private JPanel topPanel;
+	private JPanel mainPanel;
 	private GridLayout gridLayout;
 	private JLabel turnIcon;
 
@@ -50,6 +52,7 @@ public class Game extends JFrame {
 		setTitle("FourInRow");
 		setSize(this.numOfRow * 115, this.numOfColumn * 100);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setResizable(false);
 		setVisible(true);
 
 		changeTurnIcon(turn);
@@ -70,9 +73,110 @@ public class Game extends JFrame {
 		setTitle("FourInRow");
 		setSize(this.numOfRow * 115, this.numOfColumn * 100);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setResizable(false);
 		setVisible(true);
 
 		changeTurnIcon(turn);
+	}
+
+	// Initializes the board
+	public void initBoard() {
+		ImageIcon icon;
+		Image img;
+		Font customFont = new Font("Arial", Font.PLAIN, 18);
+
+		// Top panel
+		this.topPanel = new JPanel();
+		this.topPanel.setBackground(Color.WHITE);
+		add(topPanel, BorderLayout.NORTH);
+		this.topPanel.setLayout(new GridLayout(1, 3));
+
+		// Create panel + reset button
+		JPanel resetJPanel = new JPanel();
+
+		JButton resetButton = new JButton("Reset");
+
+		resetButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new Game(HUMAN_VS_HUMAN);
+				dispose();
+			}
+		});
+
+		resetJPanel.setBackground(Color.WHITE);
+		resetJPanel.setBorder(new TitledBorder(null, "Reset", TitledBorder.CENTER, TitledBorder.CENTER, customFont));
+		resetJPanel.add(resetButton);
+		this.topPanel.add(resetJPanel);
+
+		// Create turn panel
+		JPanel turnJPanel = new JPanel();
+		turnJPanel.setBackground(Color.WHITE);
+		turnJPanel.setBorder(new TitledBorder(null, "Turn:", TitledBorder.CENTER, TitledBorder.CENTER,
+				new Font("Arial", Font.BOLD, 18)));
+		this.turnIcon = new JLabel();
+		turnJPanel.add(this.turnIcon);
+		this.topPanel.add(turnJPanel);
+
+		// Create Timer + Panel
+		JPanel timerJPanel = new JPanel();
+		timerJPanel.setBackground(Color.WHITE);
+		timerJPanel.setBorder(new TitledBorder(null, "Timer", TitledBorder.CENTER, TitledBorder.CENTER, customFont));
+		JLabel timerJLabel = new JLabel("0:00");
+		timerJLabel.setFont(new Font("Arial", Font.BOLD, 30));
+		timerJPanel.add(timerJLabel);
+		Timer timer = new Timer(1000, new ActionListener() {
+			int secOne = 0;
+			int secTwo = 0;
+			int min = 0;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				secOne++;
+				if (secOne == 10) {
+
+					secOne = 0;
+					secTwo++;
+				}
+
+				if (secTwo == 6) {
+					min++;
+					secOne = 0;
+					secTwo = 0;
+				}
+				timerJLabel.setText(min + ":" + secTwo + secOne);
+			}
+		});
+		timer.start();
+		this.topPanel.add(timerJPanel);
+
+		// Main panel
+		this.mainPanel = new JPanel();
+		this.gridLayout = new GridLayout(this.numOfRow, this.numOfColumn);
+		add(mainPanel, BorderLayout.CENTER);
+		this.mainPanel.setLayout(gridLayout);
+
+		this.currentRowIndex = new int[this.numOfColumn];
+		Arrays.fill(this.currentRowIndex, this.numOfRow - 1); // Initialize the array with the number of rows
+		System.out.println(Arrays.toString(this.currentRowIndex));
+
+		this.graphicsBoard = new Button[this.numOfRow][this.numOfColumn];
+		this.logicalBoard = new int[this.numOfRow][this.numOfColumn];
+
+		icon = new ImageIcon("images/free_cell.png");
+		img = icon.getImage();
+
+		// Fill the graphicsBoard with buttons.
+		for (int row = 0; row < this.numOfRow; row++) {
+			for (int column = 0; column < this.numOfColumn; column++) {
+
+				this.graphicsBoard[row][column] = new Button(img);
+				this.graphicsBoard[row][column].addActionListener(new AL(column));
+				this.mainPanel.add(this.graphicsBoard[row][column]);
+			}
+		}
+
 	}
 
 	// Change the icon turn every turn.
@@ -90,52 +194,6 @@ public class Game extends JFrame {
 			this.turnIcon.setIcon(new ImageIcon(img));
 
 		}
-	}
-
-	// Initializes the board
-	public void initBoard() {
-		ImageIcon icon;
-		Image img;
-
-		// Top panel
-		this.topPanel = new Panel();
-		this.topPanel.setBackground(Color.WHITE);
-		add(topPanel, BorderLayout.NORTH);
-
-		JLabel turnJLabel = new JLabel("Turn:");
-		turnJLabel.setFont(new Font("Arial", Font.BOLD, 40));
-		this.topPanel.add(turnJLabel);
-
-		this.turnIcon = new JLabel();
-		this.topPanel.add(turnIcon);
-
-		// Main panel
-		this.mainPanel = new Panel();
-		this.gridLayout = new GridLayout(this.numOfRow, this.numOfColumn);
-		add(mainPanel, BorderLayout.CENTER);
-		this.mainPanel.setLayout(gridLayout);
-		
-		this.currentRowIndex = new int[this.numOfColumn];
-		Arrays.fill(this.currentRowIndex, this.numOfRow - 1); // Initialize the array with the number of rows
-		System.out.println(Arrays.toString(this.currentRowIndex));
-
-		this.graphicsBoard = new Button[this.numOfRow][this.numOfColumn];
-		this.logicalBoard = new int[this.numOfRow][this.numOfColumn];
-
-		icon = new ImageIcon("images/free_cell.png");
-		img = icon.getImage();
-		
-		
-		//Fill the graphicsBoard with buttons.
-		for (int row = 0; row < this.numOfRow; row++) {
-			for (int column = 0; column < this.numOfColumn; column++) {
-
-				this.graphicsBoard[row][column] = new Button(img);
-				this.graphicsBoard[row][column].addActionListener(new AL(column));
-				this.mainPanel.add(this.graphicsBoard[row][column]);
-			}
-		}
-
 	}
 
 	// Open dialog that show who win the game with options to reset or exit.
@@ -172,7 +230,7 @@ public class Game extends JFrame {
 				return;
 			}
 		}
-		
+
 		String[] options = { "Play again", "Exit" };
 		int response = JOptionPane.showOptionDialog(null, "Tie", "The board is full", JOptionPane.WARNING_MESSAGE,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
