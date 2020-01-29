@@ -3,9 +3,9 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class Main {
-	private static final int  HUMAN_VS_HUMAN =1;
-	private static final int  HUMAN_VS_COMPUTER=2;
-	
+	private static final int HUMAN_VS_HUMAN = 1;
+	private static final int HUMAN_VS_COMPUTER = 2;
+
 	public static void main(String[] args) {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -14,7 +14,7 @@ public class Main {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		ImageIcon icon = new ImageIcon("images/icon.png");
 		String[] options = { "Normal game", "Human Vs Computer", "Custom game" };
 
@@ -48,8 +48,8 @@ public class Main {
 		JTextField numOfColumnfField = new JTextField();
 		JTextField numOfSequencefField = new JTextField();
 		final JComponent[] inputs = new JComponent[] { new JLabel("Type the number of row:"), numOfRowfField,
-				new JLabel("Type the number of column:"), numOfColumnfField, new JLabel("Type the number of sequence(4 and up):"),
-				numOfSequencefField };
+				new JLabel("Type the number of column:"), numOfColumnfField,
+				new JLabel("Type the number of sequence(4 and up):"), numOfSequencefField };
 		int result = JOptionPane.showConfirmDialog(null, inputs, "Custom game", JOptionPane.PLAIN_MESSAGE);
 		if (result == JOptionPane.OK_OPTION) {
 			new Game(Integer.parseInt(numOfRowfField.getText()), Integer.parseInt(numOfColumnfField.getText()),

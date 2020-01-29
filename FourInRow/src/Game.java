@@ -1,15 +1,17 @@
 import java.awt.*;
 import java.awt.event.*;
-
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 public class Game extends JFrame {
-	// VERSION: 1.9
-	// LAST EDIT: 27.01.20
+	// VERSION: 2.0
+	// LAST EDIT: 29.01.20
 
 	// Free space - 0, Player one(RED) - 1, Player two(BLUE) - 2, Computer - 3
 	// HUMAN - 1, COMPUTER - 2
@@ -32,6 +34,8 @@ public class Game extends JFrame {
 	private int[][] logicalBoard;
 	private int[] currentRowIndex;
 
+	private File[] fileArray;
+
 	private JPanel topPanel;
 	private JPanel mainPanel;
 	private GridLayout gridLayout;
@@ -50,10 +54,11 @@ public class Game extends JFrame {
 
 		initBoard();
 		setTitle("FourInRow");
-		setSize(this.numOfRow * 115, this.numOfColumn * 100);
+
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setResizable(false);
 		setVisible(true);
+		pack();
 
 		changeTurnIcon(turn);
 	}
@@ -71,9 +76,10 @@ public class Game extends JFrame {
 
 		initBoard();
 		setTitle("FourInRow");
-		setSize(this.numOfRow * 115, this.numOfColumn * 100);
+
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setResizable(false);
+		pack();
 		setVisible(true);
 
 		changeTurnIcon(turn);
@@ -81,8 +87,8 @@ public class Game extends JFrame {
 
 	// Initializes the board
 	public void initBoard() {
-		ImageIcon icon;
-		Image img;
+		arrayOfImageFiles();
+		Image img = null;
 		Font customFont = new Font("Arial", Font.PLAIN, 18);
 
 		// Top panel
@@ -159,19 +165,23 @@ public class Game extends JFrame {
 
 		this.currentRowIndex = new int[this.numOfColumn];
 		Arrays.fill(this.currentRowIndex, this.numOfRow - 1); // Initialize the array with the number of rows
-		System.out.println(Arrays.toString(this.currentRowIndex));
-
 		this.graphicsBoard = new Button[this.numOfRow][this.numOfColumn];
 		this.logicalBoard = new int[this.numOfRow][this.numOfColumn];
 
-		icon = new ImageIcon("images/free_cell.png");
-		img = icon.getImage();
+		try {
+			img = ImageIO.read(fileArray[0]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
+
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
 		// Fill the graphicsBoard with buttons.
 		for (int row = 0; row < this.numOfRow; row++) {
 			for (int column = 0; column < this.numOfColumn; column++) {
 
 				this.graphicsBoard[row][column] = new Button(img);
+				this.graphicsBoard[row][column].setPreferredSize(new Dimension(90, 90));
 				this.graphicsBoard[row][column].addActionListener(new AL(column));
 				this.mainPanel.add(this.graphicsBoard[row][column]);
 			}
@@ -179,17 +189,25 @@ public class Game extends JFrame {
 
 	}
 
+	// Make array with player icons
+	public void arrayOfImageFiles() {
+		this.fileArray = new File[3];
+		fileArray[0] = new File("C:\\Users\\Matan\\eclipse-workspace\\FourInRow\\Images\\free_cell.png");
+		fileArray[1] = new File("C:\\Users\\Matan\\eclipse-workspace\\FourInRow\\Images\\player_one.png");
+		fileArray[2] = new File("C:\\Users\\Matan\\eclipse-workspace\\FourInRow\\Images\\player_two.png");
+	}
+
 	// Change the icon turn every turn.
 	public void changeTurnIcon(int turn) {
 		ImageIcon icon;
 		Image img;
 		if (turn == 1) {
-			icon = new ImageIcon("images/player_one_icon.png");
+			icon = new ImageIcon("Images/player_one_icon.png");
 			img = icon.getImage().getScaledInstance(60, 60, icon.getImage().SCALE_SMOOTH);
 			this.turnIcon.setIcon(new ImageIcon(img));
 
 		} else {
-			icon = new ImageIcon("images/player_two_icon.png");
+			icon = new ImageIcon("Images/player_two_icon.png");
 			img = icon.getImage().getScaledInstance(60, 60, icon.getImage().SCALE_SMOOTH);
 			this.turnIcon.setIcon(new ImageIcon(img));
 
@@ -198,7 +216,7 @@ public class Game extends JFrame {
 
 	// Open dialog that show who win the game with options to reset or exit.
 	public void winnerDialog(String winnerName) {
-		ImageIcon icon = new ImageIcon("images/trophy.png");
+		ImageIcon icon = new ImageIcon("Images/trophy.png");
 		String[] options = { "Play again", "Exit" };
 
 		int response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
@@ -431,13 +449,19 @@ public class Game extends JFrame {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			ImageIcon icon;
-			Image img;
+
+			Image img = null;
 			if (gameType == HUMAN_VS_HUMAN) {
 
 				if (turn == PLAYER_ONE && currentRowIndex[this.col] > -1) {
-					icon = new ImageIcon("images/player_one.png");
-					img = icon.getImage();
+
+					try {
+						img = ImageIO.read(fileArray[1]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
+
+					} catch (IOException e1) {
+
+						e1.printStackTrace();
+					}
 
 					logicalBoard[currentRowIndex[this.col]][this.col] = PLAYER_ONE;
 					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
@@ -460,8 +484,12 @@ public class Game extends JFrame {
 
 				} else if (turn == PLAYER_TWO && currentRowIndex[this.col] > -1) {
 
-					icon = new ImageIcon("images/player_two.png");
-					img = icon.getImage();
+					try {
+						img = ImageIO.read(fileArray[2]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
+
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 
 					logicalBoard[currentRowIndex[this.col]][this.col] = PLAYER_TWO;
 					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
@@ -487,8 +515,13 @@ public class Game extends JFrame {
 			} else {
 				turn = COMPUTER;
 				if (turn == HUMAN && currentRowIndex[this.col] > -1) {
-					icon = new ImageIcon("images/player_one.png");
-					img = icon.getImage();
+					try {
+						img = ImageIO.read(fileArray[1]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
+
+					} catch (IOException e1) {
+
+						e1.printStackTrace();
+					}
 
 					logicalBoard[currentRowIndex[this.col]][this.col] = PLAYER_ONE;
 					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
