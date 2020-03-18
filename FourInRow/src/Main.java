@@ -5,13 +5,13 @@ import javax.swing.*;
 public class Main {
 	private static final int HUMAN_VS_HUMAN = 1;
 	private static final int HUMAN_VS_COMPUTER = 2;
+	private static final int CUSTOM_GAME = 3;
 
 	public static void main(String[] args) {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -53,7 +53,7 @@ public class Main {
 		int result = JOptionPane.showConfirmDialog(null, inputs, "Custom game", JOptionPane.PLAIN_MESSAGE);
 		if (result == JOptionPane.OK_OPTION) {
 			new Game(Integer.parseInt(numOfRowfField.getText()), Integer.parseInt(numOfColumnfField.getText()),
-					Integer.parseInt(numOfSequencefField.getText()));
+					Integer.parseInt(numOfSequencefField.getText()),CUSTOM_GAME);
 		} else {
 			System.out.println("User canceled / closed the dialog, result = " + result);
 		}

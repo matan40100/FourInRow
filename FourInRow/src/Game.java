@@ -4,19 +4,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
+import java.lang.Math;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 public class Game extends JFrame {
-	// VERSION: 2.0
-	// LAST EDIT: 29.01.20
+	// VERSION: 2.1
+	// LAST EDIT: 18.03.20
 
 	// Free space - 0, Player one(RED) - 1, Player two(BLUE) - 2, Computer - 3
 	// HUMAN - 1, COMPUTER - 2
 	private static final int HUMAN_VS_HUMAN = 1;
 	private static final int HUMAN_VS_COMPUTER = 2;
+	private static final int CUSTOM_GAME = 3;
+
 	private int gameType;
 	private int turn;
 
@@ -40,6 +43,7 @@ public class Game extends JFrame {
 	private JPanel mainPanel;
 	private GridLayout gridLayout;
 	private JLabel turnIcon;
+	private Timer timer;
 
 	// Builder for normal game(Human VS. Human / Human VS. Computer).
 	public Game(int gameType) {
@@ -49,7 +53,14 @@ public class Game extends JFrame {
 		this.numOfRow = 6;
 		this.numOfColumn = 7;
 		this.sequence = 4;
-		this.turn = rand.nextInt(2 - 1 + 1) + 1;
+
+		if (gameType == HUMAN_VS_HUMAN) {
+			this.turn = rand.nextInt(2 - 1 + 1) + 1;
+			System.out.println("HUMAN_VS_HUMAN");
+		} else if (gameType == HUMAN_VS_COMPUTER) {
+			this.turn = rand.nextInt(4 - 3 + 1) + 3;
+			System.out.println("HUMAN_VS_COMPUTER");
+		}
 		this.gameType = gameType;
 
 		initBoard();
@@ -64,7 +75,7 @@ public class Game extends JFrame {
 	}
 
 	// Builder for custom game.
-	public Game(int numOfRow, int numOfColumn, int sequence) {
+	public Game(int numOfRow, int numOfColumn, int sequence, int gameType) {
 
 		Random rand = new Random();
 
@@ -72,7 +83,7 @@ public class Game extends JFrame {
 		this.numOfColumn = numOfColumn;
 		this.sequence = sequence;
 		this.turn = rand.nextInt(2 - 1 + 1) + 1;
-		this.gameType = HUMAN_VS_HUMAN;
+		this.gameType = gameType;
 
 		initBoard();
 		setTitle("FourInRow");
@@ -106,7 +117,14 @@ public class Game extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Game(HUMAN_VS_HUMAN);
+				if(gameType == HUMAN_VS_HUMAN || gameType == HUMAN_VS_COMPUTER)
+				{
+					new Game(gameType);
+				}
+				else
+				{
+					new Game(numOfRow, numOfColumn, sequence,CUSTOM_GAME);
+				}
 				dispose();
 			}
 		});
@@ -132,7 +150,7 @@ public class Game extends JFrame {
 		JLabel timerJLabel = new JLabel("0:00");
 		timerJLabel.setFont(new Font("Arial", Font.BOLD, 30));
 		timerJPanel.add(timerJLabel);
-		Timer timer = new Timer(1000, new ActionListener() {
+		this.timer = new Timer(1000, new ActionListener() {
 			int secOne = 0;
 			int secTwo = 0;
 			int min = 0;
@@ -154,7 +172,7 @@ public class Game extends JFrame {
 				timerJLabel.setText(min + ":" + secTwo + secOne);
 			}
 		});
-		timer.start();
+		this.timer.start();
 		this.topPanel.add(timerJPanel);
 
 		// Main panel
@@ -172,7 +190,7 @@ public class Game extends JFrame {
 			img = ImageIO.read(fileArray[0]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
 
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
+
 			e1.printStackTrace();
 		}
 
@@ -192,21 +210,21 @@ public class Game extends JFrame {
 	// Make array with player icons
 	public void arrayOfImageFiles() {
 		this.fileArray = new File[3];
-		fileArray[0] = new File("C:\\Users\\Matan\\eclipse-workspace\\FourInRow\\Images\\free_cell.png");
-		fileArray[1] = new File("C:\\Users\\Matan\\eclipse-workspace\\FourInRow\\Images\\player_one.png");
-		fileArray[2] = new File("C:\\Users\\Matan\\eclipse-workspace\\FourInRow\\Images\\player_two.png");
+		fileArray[0] = new File("Images/free_cell.png");
+		fileArray[1] = new File("Images/player_one.png");
+		fileArray[2] = new File("Images/player_two.png");
 	}
 
 	// Change the icon turn every turn.
 	public void changeTurnIcon(int turn) {
 		ImageIcon icon;
 		Image img;
-		if (turn == 1) {
+		if (turn == PLAYER_ONE || turn == COMPUTER) {
 			icon = new ImageIcon("Images/player_one_icon.png");
 			img = icon.getImage().getScaledInstance(60, 60, icon.getImage().SCALE_SMOOTH);
 			this.turnIcon.setIcon(new ImageIcon(img));
 
-		} else {
+		} else if (turn == PLAYER_TWO || turn == HUMAN) {
 			icon = new ImageIcon("Images/player_two_icon.png");
 			img = icon.getImage().getScaledInstance(60, 60, icon.getImage().SCALE_SMOOTH);
 			this.turnIcon.setIcon(new ImageIcon(img));
@@ -223,20 +241,27 @@ public class Game extends JFrame {
 				JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, options, options[0]);
 
 		switch (response) {
-		case -1:
-			System.out.println("Option Dialog Window Was Closed");
-			System.exit(0);
+			case -1:
+				System.out.println("Option Dialog Window Was Closed");
+				System.exit(0);
 
-		case 0:
-			dispose();
-			new Game(this.numOfRow, this.numOfColumn, this.sequence);
-			break;
-		case 1:
-			System.exit(0);
-			break;
+			case 0:
+				dispose();
+				if(gameType == HUMAN_VS_HUMAN || gameType == HUMAN_VS_COMPUTER)
+				{
+					new Game(this.gameType);
+				}
+				else
+				{
+					new Game(this.numOfRow, this.numOfColumn, this.sequence,CUSTOM_GAME);
+				}
+				break;
+			case 1:
+				System.exit(0);
+				break;
 
-		default:
-			break;
+			default:
+				break;
 		}
 	}
 
@@ -254,20 +279,20 @@ public class Game extends JFrame {
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
 		switch (response) {
-		case -1:
-			System.out.println("Option Dialog Window Was Closed");
-			System.exit(0);
+			case -1:
+				System.out.println("Option Dialog Window Was Closed");
+				System.exit(0);
 
-		case 0:
-			dispose();
-			new Game(this.gameType);
-			break;
-		case 1:
-			System.exit(0);
-			break;
+			case 0:
+				dispose();
+				new Game(this.gameType);
+				break;
+			case 1:
+				System.exit(0);
+				break;
 
-		default:
-			break;
+			default:
+				break;
 		}
 
 	}
@@ -434,11 +459,62 @@ public class Game extends JFrame {
 				|| checkSlashDown(currentRowIndex[column], column, player, name)
 				|| checkBackSlashUp(currentRowIndex[column], column, player, name)
 				|| checkBackSlashDown(currentRowIndex[column], column, player, name)) {
-
+			timer.stop();
 			return true;
+
 		}
 		return false;
 
+	}
+
+	public int gradeRow() {
+		int dupLogicalBoard[][] = logicalBoard.clone();
+		int gradePlayer = 0, gradeComputer = 0;
+		int countPlayer = 0, countComputer = 0, countFree = 0;
+		int bestCol = 0, bestRow = 0;
+
+		int[] gradeArray = new int[numOfColumn];
+		int currentLevel = 0;
+		for (int col = 0; col < this.numOfColumn; col++) {
+			countComputer = 0;
+			countFree = 0;
+
+			dupLogicalBoard[this.currentRowIndex[col]][col] = COMPUTER;
+			for (int i = 0; i < dupLogicalBoard.length; i++) {
+				for (int j = 0; j < dupLogicalBoard[i].length; j++) {
+					System.out.print(dupLogicalBoard[i][j] + " ");
+				}
+				System.out.println();
+			}
+			currentLevel = this.currentRowIndex[col];
+
+			for (int secCol = col + 1; secCol <= col + 3 && secCol < this.numOfColumn; secCol++) {
+
+				if (dupLogicalBoard[currentLevel][secCol] == HUMAN) {
+					break;
+				} else if (dupLogicalBoard[currentLevel][secCol] == FREE_SPACE) {
+					countFree++;
+				} else {
+					countComputer++;
+				}
+
+			}
+			gradeArray[col] = (int) Math.pow(10, countComputer);
+			dupLogicalBoard[this.currentRowIndex[col]][col] = FREE_SPACE;
+			System.out.println("Column: " + col);
+			System.out.println("Computer: " + countComputer);
+			System.out.println("Free space: " + countFree);
+			System.out.println();
+
+		}
+		System.out.println(Arrays.toString(gradeArray));
+		
+		for (int i = 1; i < gradeArray.length; i++) {
+			if (gradeArray[i] > gradeArray[bestCol])
+			bestCol = i;
+		}
+		System.out.println(bestCol);
+		return bestCol;
 	}
 
 	class AL implements ActionListener {
@@ -451,7 +527,7 @@ public class Game extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 
 			Image img = null;
-			if (gameType == HUMAN_VS_HUMAN) {
+			if (gameType == HUMAN_VS_HUMAN || gameType == CUSTOM_GAME) {
 
 				if (turn == PLAYER_ONE && currentRowIndex[this.col] > -1) {
 
@@ -510,11 +586,41 @@ public class Game extends JFrame {
 					System.out.println(Arrays.toString(currentRowIndex));
 					turn = 3 - turn;
 					changeTurnIcon(turn);
+
 				}
 
 			} else {
-				turn = COMPUTER;
+				// turn = HUMAN;
 				if (turn == HUMAN && currentRowIndex[this.col] > -1) {
+					try {
+						img = ImageIO.read(fileArray[2]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
+
+					} catch (IOException e1) {
+
+						e1.printStackTrace();
+					}
+
+					logicalBoard[currentRowIndex[this.col]][this.col] = HUMAN;
+					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
+					repaint();
+
+					System.out.println();
+					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
+							.replace("]]", "").replace(", ", " "));
+
+					if (checkWinner(this.col, HUMAN, "Human")) {
+
+						winnerDialog("Human");
+						return;
+					}
+					currentRowIndex[this.col]--;
+					isBoardFull();
+					System.out.println(Arrays.toString(currentRowIndex));
+					turn = 7 - turn;
+					changeTurnIcon(turn);
+					gradeRow();
+
+				} else if (turn == COMPUTER && currentRowIndex[this.col] > -1) {
 					try {
 						img = ImageIO.read(fileArray[1]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
 
@@ -523,7 +629,7 @@ public class Game extends JFrame {
 						e1.printStackTrace();
 					}
 
-					logicalBoard[currentRowIndex[this.col]][this.col] = PLAYER_ONE;
+					logicalBoard[currentRowIndex[this.col]][this.col] = COMPUTER;
 					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
 					repaint();
 
@@ -531,17 +637,16 @@ public class Game extends JFrame {
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkWinner(this.col, PLAYER_ONE, "Player one")) {
+					if (checkWinner(this.col, HUMAN, "Computer")) {
 
-						winnerDialog("Player one");
+						winnerDialog("Computer");
 						return;
 					}
 					currentRowIndex[this.col]--;
 					isBoardFull();
 					System.out.println(Arrays.toString(currentRowIndex));
-					turn = 3 - turn;
-
-				} else if (turn == COMPUTER && currentRowIndex[this.col] > -1) {
+					turn = 7 - turn;
+					changeTurnIcon(turn);
 
 				}
 
