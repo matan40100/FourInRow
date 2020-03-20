@@ -11,7 +11,7 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 public class Game extends JFrame {
-	// VERSION: 2.2
+	// VERSION: 2.3
 	// LAST EDIT: 20.03.20
 
 	// Free space - 0, Player one(RED) - 1, Player two(BLUE) - 2, Computer - 3
