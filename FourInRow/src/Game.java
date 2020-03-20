@@ -11,8 +11,8 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 public class Game extends JFrame {
-	// VERSION: 2.1
-	// LAST EDIT: 18.03.20
+	// VERSION: 2.2
+	// LAST EDIT: 20.03.20
 
 	// Free space - 0, Player one(RED) - 1, Player two(BLUE) - 2, Computer - 3
 	// HUMAN - 1, COMPUTER - 2
@@ -117,13 +117,10 @@ public class Game extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(gameType == HUMAN_VS_HUMAN || gameType == HUMAN_VS_COMPUTER)
-				{
+				if (gameType == HUMAN_VS_HUMAN || gameType == HUMAN_VS_COMPUTER) {
 					new Game(gameType);
-				}
-				else
-				{
-					new Game(numOfRow, numOfColumn, sequence,CUSTOM_GAME);
+				} else {
+					new Game(numOfRow, numOfColumn, sequence, CUSTOM_GAME);
 				}
 				dispose();
 			}
@@ -247,13 +244,10 @@ public class Game extends JFrame {
 
 			case 0:
 				dispose();
-				if(gameType == HUMAN_VS_HUMAN || gameType == HUMAN_VS_COMPUTER)
-				{
+				if (gameType == HUMAN_VS_HUMAN || gameType == HUMAN_VS_COMPUTER) {
 					new Game(this.gameType);
-				}
-				else
-				{
-					new Game(this.numOfRow, this.numOfColumn, this.sequence,CUSTOM_GAME);
+				} else {
+					new Game(this.numOfRow, this.numOfColumn, this.sequence, CUSTOM_GAME);
 				}
 				break;
 			case 1:
@@ -298,13 +292,13 @@ public class Game extends JFrame {
 	}
 
 	// Right.
-	public boolean checkRight(int row, int column, int player, String name) {
+	public boolean checkRight(int[][] board, int row, int column, int player, String name) {
 
 		int count = 0;
 		int testRange = this.sequence - 3;
 		for (int funcColumn = column - testRange; funcColumn < this.numOfColumn; funcColumn++) {
 			if (funcColumn >= 0) {
-				if (this.logicalBoard[row][funcColumn] == player) {
+				if (board[row][funcColumn] == player) {
 					count++;
 					if (count == this.sequence) {
 						System.out.println(name + " WIN(Right)");
@@ -319,13 +313,13 @@ public class Game extends JFrame {
 	}
 
 	// Left.
-	public boolean checkLeft(int row, int column, int player, String name) {
+	public boolean checkLeft(int[][] board, int row, int column, int player, String name) {
 		int count = 0;
 		int testRange = this.sequence - 3;
 		for (int funcColumn = column + testRange; funcColumn >= 0; funcColumn--) {
 			if (funcColumn < this.numOfColumn) {
 
-				if (this.logicalBoard[row][funcColumn] == player) {
+				if (board[row][funcColumn] == player) {
 					count++;
 
 					if (count == this.sequence) {
@@ -342,10 +336,10 @@ public class Game extends JFrame {
 	}
 
 	// Down.
-	public boolean checkDown(int row, int column, int player, String name) {
+	public boolean checkDown(int[][] board, int row, int column, int player, String name) {
 		int count = 0;
 		for (int funcRow = row; funcRow < this.numOfRow; funcRow++) {
-			if (this.logicalBoard[funcRow][column] == player) {
+			if (board[funcRow][column] == player) {
 				count++;
 
 				if (count == this.sequence) {
@@ -360,13 +354,13 @@ public class Game extends JFrame {
 	}
 
 	// (/) Up.
-	public boolean checkSlashUp(int row, int column, int player, String name) {
+	public boolean checkSlashUp(int[][] board, int row, int column, int player, String name) {
 		int count = 0;
 		int testRange = this.sequence - 3;
 		for (int funcRow = row + testRange, funcColumn = column - testRange; funcRow >= 0
 				&& funcColumn < this.numOfColumn; funcRow--, funcColumn++) {
 			if (funcRow < this.numOfRow && funcColumn >= 0) {
-				if (this.logicalBoard[funcRow][funcColumn] == player) {
+				if (board[funcRow][funcColumn] == player) {
 					count++;
 
 					if (count == this.sequence) {
@@ -383,14 +377,14 @@ public class Game extends JFrame {
 	}
 
 	// (/) Down.
-	public boolean checkSlashDown(int row, int column, int player, String name) {
+	public boolean checkSlashDown(int[][] board, int row, int column, int player, String name) {
 		int count = 0;
 		int testRange = this.sequence - 3;
 		for (int funcRow = row - testRange, funcColumn = column + testRange; funcRow < this.numOfRow
 				&& funcColumn >= 0; funcRow++, funcColumn--) {
 
 			if (funcRow >= 0 && funcColumn < this.numOfColumn) {
-				if (this.logicalBoard[funcRow][funcColumn] == player) {
+				if (board[funcRow][funcColumn] == player) {
 					count++;
 
 					if (count == this.sequence) {
@@ -406,14 +400,14 @@ public class Game extends JFrame {
 	}
 
 	// (\) Up.
-	public boolean checkBackSlashUp(int row, int column, int player, String name) {
+	public boolean checkBackSlashUp(int[][] board, int row, int column, int player, String name) {
 		int count = 0;
 		int testRange = this.sequence - 3;
 		for (int funcRow = row + testRange, funcColumn = column + testRange; funcRow >= 0
 				&& funcColumn >= 0; funcRow--, funcColumn--) {
 
 			if (funcRow < this.numOfRow && funcColumn < this.numOfColumn) {
-				if (this.logicalBoard[funcRow][funcColumn] == player) {
+				if (board[funcRow][funcColumn] == player) {
 					count++;
 
 					if (count == this.sequence) {
@@ -429,13 +423,13 @@ public class Game extends JFrame {
 	}
 
 	// (\) Down.
-	public boolean checkBackSlashDown(int row, int column, int player, String name) {
+	public boolean checkBackSlashDown(int[][] board, int row, int column, int player, String name) {
 		int count = 0;
 		int testRange = this.sequence - 3;
 		for (int funcRow = row - testRange, funcColumn = column - testRange; funcRow < this.numOfRow
 				&& funcColumn < this.numOfColumn; funcRow++, funcColumn++) {
 			if (funcRow >= 0 && funcColumn >= 0) {
-				if (this.logicalBoard[funcRow][funcColumn] == player) {
+				if (board[funcRow][funcColumn] == player) {
 					count++;
 
 					if (count == this.sequence) {
@@ -451,14 +445,14 @@ public class Game extends JFrame {
 	}
 
 	// Group all the functions to check who win.
-	public boolean checkWinner(int column, int player, String name) {
-		if (checkRight(currentRowIndex[column], column, player, name)
-				|| checkLeft(currentRowIndex[column], column, player, name)
-				|| checkDown(currentRowIndex[column], column, player, name)
-				|| checkSlashUp(currentRowIndex[column], column, player, name)
-				|| checkSlashDown(currentRowIndex[column], column, player, name)
-				|| checkBackSlashUp(currentRowIndex[column], column, player, name)
-				|| checkBackSlashDown(currentRowIndex[column], column, player, name)) {
+	public boolean checkWinner(int[][] board, int column, int player, String name) {
+		if (checkRight(board, currentRowIndex[column], column, player, name)
+				|| checkLeft(board, currentRowIndex[column], column, player, name)
+				|| checkDown(board, currentRowIndex[column], column, player, name)
+				|| checkSlashUp(board, currentRowIndex[column], column, player, name)
+				|| checkSlashDown(board, currentRowIndex[column], column, player, name)
+				|| checkBackSlashUp(board, currentRowIndex[column], column, player, name)
+				|| checkBackSlashDown(board, currentRowIndex[column], column, player, name)) {
 			timer.stop();
 			return true;
 
@@ -468,7 +462,7 @@ public class Game extends JFrame {
 	}
 
 	public int gradeRow() {
-		int dupLogicalBoard[][] = logicalBoard.clone();
+		int dupLogicalBoard[][] = this.logicalBoard.clone();
 		int gradePlayer = 0, gradeComputer = 0;
 		int countPlayer = 0, countComputer = 0, countFree = 0;
 		int bestCol = 0, bestRow = 0;
@@ -508,13 +502,46 @@ public class Game extends JFrame {
 
 		}
 		System.out.println(Arrays.toString(gradeArray));
-		
+
 		for (int i = 1; i < gradeArray.length; i++) {
 			if (gradeArray[i] > gradeArray[bestCol])
-			bestCol = i;
+				bestCol = i;
 		}
 		System.out.println(bestCol);
 		return bestCol;
+	}
+	//Find if Computer has a potential column to win other check if the human can win and block
+	public void findPotentialWinLose() {
+		Image img = null;
+		try {
+			img = ImageIO.read(fileArray[1]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
+
+		} catch (IOException e1) {
+
+			e1.printStackTrace();
+		}
+		int dupLogicalBoard[][] = this.logicalBoard.clone();
+		for (int col = 0; col < this.numOfColumn; col++) {
+			dupLogicalBoard[this.currentRowIndex[col]][col] = COMPUTER;
+			if (checkWinner(dupLogicalBoard, col, COMPUTER, "Computer")) {
+				System.out.println("test: " + col);
+				logicalBoard[this.currentRowIndex[col]][col] = COMPUTER;
+				graphicsBoard[currentRowIndex[col]][col].setImage(img);
+				graphicsBoard[currentRowIndex[col]][col].repaint();
+				winnerDialog("Computer");
+				
+			} else {
+				dupLogicalBoard[this.currentRowIndex[col]][col] = HUMAN;
+				if (checkWinner(dupLogicalBoard, col, HUMAN, "Human")) {
+					logicalBoard[this.currentRowIndex[col]][col] = COMPUTER;
+					graphicsBoard[currentRowIndex[col]][col].setImage(img);
+					graphicsBoard[currentRowIndex[col]][col].repaint();
+					
+				}
+			}
+			dupLogicalBoard[this.currentRowIndex[col]][col] = FREE_SPACE;
+		}
+
 	}
 
 	class AL implements ActionListener {
@@ -547,7 +574,7 @@ public class Game extends JFrame {
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkWinner(this.col, PLAYER_ONE, "Player one")) {
+					if (checkWinner(logicalBoard, this.col, PLAYER_ONE, "Player one")) {
 
 						winnerDialog("Player one");
 						return;
@@ -575,7 +602,7 @@ public class Game extends JFrame {
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkWinner(this.col, PLAYER_TWO, "Player two")) {
+					if (checkWinner(logicalBoard, this.col, PLAYER_TWO, "Player two")) {
 
 						winnerDialog("Player two");
 						return;
@@ -602,13 +629,13 @@ public class Game extends JFrame {
 
 					logicalBoard[currentRowIndex[this.col]][this.col] = HUMAN;
 					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
-					repaint();
+					graphicsBoard[currentRowIndex[this.col]][this.col].repaint();
 
 					System.out.println();
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkWinner(this.col, HUMAN, "Human")) {
+					if (checkWinner(logicalBoard, this.col, HUMAN, "Human")) {
 
 						winnerDialog("Human");
 						return;
@@ -619,6 +646,15 @@ public class Game extends JFrame {
 					turn = 7 - turn;
 					changeTurnIcon(turn);
 					gradeRow();
+					new Thread(new Runnable() {
+					    public void run() {
+					      try {
+					          Thread.sleep(1500);
+							  findPotentialWinLose();
+							}
+					      catch(InterruptedException ex) {}
+					       }
+					    }).start();	
 
 				} else if (turn == COMPUTER && currentRowIndex[this.col] > -1) {
 					try {
@@ -631,13 +667,13 @@ public class Game extends JFrame {
 
 					logicalBoard[currentRowIndex[this.col]][this.col] = COMPUTER;
 					graphicsBoard[currentRowIndex[this.col]][this.col].setImage(img);
-					repaint();
+					graphicsBoard[currentRowIndex[this.col]][this.col].repaint();
 
 					System.out.println();
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkWinner(this.col, HUMAN, "Computer")) {
+					if (checkWinner(logicalBoard, this.col, HUMAN, "Computer")) {
 
 						winnerDialog("Computer");
 						return;
