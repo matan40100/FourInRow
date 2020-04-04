@@ -11,25 +11,28 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
 public class Game extends JFrame {
-	// VERSION: 2.5
-	// LAST EDIT: 30.03.20
+	// VERSION: 2.7
+	// LAST EDIT: 5.4.20
 
-	// Free space - 0, Player one(RED) - 1, Player two(BLUE) - 2, Computer - 3
+	// Free space - 0, Player One(RED) - 1, Player Two(BLUE) - 2, Computer - 3
 	// HUMAN - 1, COMPUTER - 2
-	private static final int HUMAN_VS_HUMAN = 1;
-	private static final int HUMAN_VS_COMPUTER = 2;
-	private static final int CUSTOM_GAME = 3;
+	private static final int HUMAN_VS_HUMAN = 0;
+	private static final int HUMAN_VS_COMPUTER = 1;
 
 	private int gameType;
 	private int turn;
 
-	private final int FREE_SPACE = 0;
-	private final int PLAYER_ONE = 1;
-	private final int PLAYER_TWO = 2;
-	
+	private static final int FREE_SPACE = 0;
+	private static final int PLAYER_ONE = 1;
+	private static final int PLAYER_TWO = 2;
 
 	private final int COMPUTER = 3;
 	private final int HUMAN = 4;
+
+	private final int EASY = 0;
+	private final int MEDIUM = 1;
+	private final int HARD = 2;
+	private int difficultyLevel;
 
 	private int numOfRow;
 	private int numOfColumn;
@@ -52,38 +55,8 @@ public class Game extends JFrame {
 	private JLabel turnIcon;
 	private Timer timer;
 
-	// Builder for normal game(Human VS. Human / Human VS. Computer).
-	public Game(int gameType) {
-
-		Random rand = new Random();
-
-		this.numOfRow = 6;
-		this.numOfColumn = 7;
-		this.sequence = 4;
-
-		if (gameType == HUMAN_VS_HUMAN) {
-			this.turn = rand.nextInt(2 - 1 + 1) + 1;
-			System.out.println("HUMAN_VS_HUMAN");
-		} else if (gameType == HUMAN_VS_COMPUTER) {
-			// this.turn = rand.nextInt(4 - 3 + 1) + 3;
-			this.turn = 4;
-			System.out.println("HUMAN_VS_COMPUTER");
-		}
-		this.gameType = gameType;
-
-		initBoard();
-		setTitle("FourInRow");
-
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setResizable(false);
-		setVisible(true);
-		pack();
-
-		changeTurnIcon(turn);
-	}
-
-	// Builder for custom game.
-	public Game(int numOfRow, int numOfColumn, int sequence, int gameType) {
+	// Builder for game.
+	public Game(int numOfRow, int numOfColumn, int sequence, int gameType, int difficultyLevel) {
 
 		Random rand = new Random();
 
@@ -92,9 +65,20 @@ public class Game extends JFrame {
 		this.sequence = sequence;
 		this.turn = rand.nextInt(2 - 1 + 1) + 1;
 		this.gameType = gameType;
+		this.difficultyLevel = difficultyLevel;
+		System.out.println("Game Settings:");
+		System.out.println("Rows: " + this.numOfRow);
+		System.out.println("Columns: " + this.numOfColumn);
+		System.out.println("Sequence: " + this.sequence);
+		System.out.println("Game Type: " + this.gameType);
+		System.out.println("Difficult Level: " + this.difficultyLevel);
+
+		if (gameType == HUMAN_VS_COMPUTER) {
+			turn = 4;
+		}
 
 		initBoard();
-		setTitle("FourInRow");
+		setTitle("N In Row");
 
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setResizable(false);
@@ -104,7 +88,7 @@ public class Game extends JFrame {
 		changeTurnIcon(turn);
 	}
 
-	// Initializes the board
+	// Initializes the board - Create all the pannels,buttons,timer.
 	public void initBoard() {
 		try {
 			createImages();
@@ -125,6 +109,7 @@ public class Game extends JFrame {
 
 		JButton menuButton = new JButton("Menu");
 		menuButton.addActionListener(e -> {
+			
 			Main.main(null);
 			dispose();
 		});
@@ -132,19 +117,15 @@ public class Game extends JFrame {
 
 		JButton resetButton = new JButton("Reset");
 		resetButton.addActionListener(e -> {
-
-			if (gameType == HUMAN_VS_HUMAN || gameType == HUMAN_VS_COMPUTER) {
-				new Game(gameType);
-			} else {
-				new Game(numOfRow, numOfColumn, sequence, CUSTOM_GAME);
-			}
+			new Game(numOfRow, numOfColumn, sequence, gameType, difficultyLevel);
 			dispose();
 
 		});
 		optionsJPanel.add(resetButton);
 
 		optionsJPanel.setBackground(Color.WHITE);
-		optionsJPanel.setBorder(new TitledBorder(null, "Reset", TitledBorder.CENTER, TitledBorder.CENTER, customFont));
+		optionsJPanel
+				.setBorder(new TitledBorder(null, "Options", TitledBorder.CENTER, TitledBorder.CENTER, customFont));
 		this.topPanel.add(optionsJPanel);
 
 		// Create turn panel
@@ -255,6 +236,14 @@ public class Game extends JFrame {
 	public void winnerDialog(String winnerName) {
 		ImageIcon icon = new ImageIcon("Images/trophy.png");
 		String[] options = { "Play again", "Exit" };
+		if (winnerName.equals("Player One") || winnerName.equals("Computer")) {
+			UIManager.put("OptionPane.messageForeground", Color.RED);
+			UIManager.put("OptionPane.messageFont", new Font("Arial", Font.BOLD, 14));
+		} else {
+			UIManager.put("OptionPane.messageForeground", Color.BLUE);
+			UIManager.put("OptionPane.messageFont", new Font("Arial", Font.BOLD, 14));
+
+		}
 
 		int response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
 				JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, options, options[0]);
@@ -266,11 +255,7 @@ public class Game extends JFrame {
 
 			case 0:
 				dispose();
-				if (gameType == HUMAN_VS_HUMAN || gameType == HUMAN_VS_COMPUTER) {
-					new Game(this.gameType);
-				} else {
-					new Game(this.numOfRow, this.numOfColumn, this.sequence, CUSTOM_GAME);
-				}
+				new Game(numOfRow, numOfColumn, sequence, gameType, difficultyLevel);
 				break;
 			case 1:
 				System.exit(0);
@@ -285,7 +270,7 @@ public class Game extends JFrame {
 	public void isBoardFull() {
 
 		for (int i = 0; i < this.numOfColumn; i++) {
-			if (this.logicalBoard[0][i] == this.FREE_SPACE) {
+			if (this.logicalBoard[0][i] == FREE_SPACE) {
 				return;
 			}
 		}
@@ -301,7 +286,7 @@ public class Game extends JFrame {
 
 			case 0:
 				dispose();
-				new Game(this.gameType);
+				new Game(numOfRow, numOfColumn, sequence, gameType, difficultyLevel);
 				break;
 			case 1:
 				System.exit(0);
@@ -312,6 +297,7 @@ public class Game extends JFrame {
 		}
 
 	}
+
 
 	public boolean checkRow(int[][] board, int row, int column, int player, String name) {
 		int count = 0;
@@ -476,7 +462,6 @@ public class Game extends JFrame {
 		int gradeHuman = 0, gradeComputer = 0;
 		int countHuman = 0, countComputer = 0;
 		int i = 0;
-		
 
 		// Right.
 		for (i = 0; i < this.sequence && column + i < this.numOfColumn; i++) {
@@ -485,16 +470,26 @@ public class Game extends JFrame {
 			} else if (this.logicalBoard[row][column + i] == HUMAN) {
 				countHuman++;
 			}
+
 		}
+
 		if (i == this.sequence) {
 
 			if (countHuman > 0 && countComputer == 0) {
 				gradeHuman += (int) Math.pow(10, countHuman);
+
 			}
 
 			if (countComputer > 0 && countHuman == 0) {
 				gradeComputer += (int) Math.pow(10, countComputer);
 			}
+		}
+
+		// #1-Smart if
+		if (column + this.sequence < this.numOfColumn && this.logicalBoard[row][column] == FREE_SPACE
+				&& this.logicalBoard[row][column + (this.sequence - 1)] == FREE_SPACE
+				&& this.logicalBoard[row][column + this.sequence] == FREE_SPACE && countHuman == (this.sequence - 2)) {
+			gradeHuman += 800;
 		}
 
 		// Left
@@ -506,6 +501,7 @@ public class Game extends JFrame {
 				countHuman++;
 			}
 		}
+
 		if (i == this.sequence) {
 
 			if (countHuman > 0 && countComputer == 0) {
@@ -517,6 +513,13 @@ public class Game extends JFrame {
 			}
 		}
 
+		// #1-Smart if
+		if (column - this.sequence > -1 && this.logicalBoard[row][column] == FREE_SPACE
+				&& this.logicalBoard[row][column - (this.sequence - 1)] == FREE_SPACE
+				&& this.logicalBoard[row][column - this.sequence] == FREE_SPACE && countHuman == (this.sequence - 2)) {
+			gradeHuman += 800;
+		}
+
 		return gradeComputer - gradeHuman;
 	}
 
@@ -524,7 +527,6 @@ public class Game extends JFrame {
 		int gradeHuman = 0, gradeComputer = 0;
 		int countHuman = 0, countComputer = 0;
 		int i = 0;
-		
 
 		for (i = 0; i < this.sequence && row + i < this.numOfRow; i++) {
 			if (this.logicalBoard[row + i][column] == COMPUTER) {
@@ -552,7 +554,6 @@ public class Game extends JFrame {
 		int gradeHuman = 0, gradeComputer = 0;
 		int countHuman = 0, countComputer = 0;
 		int i = 0;
-		
 
 		// Up.
 		for (i = 0; i < this.sequence && column + i < this.numOfColumn && row - i > -1; i++) {
@@ -574,6 +575,15 @@ public class Game extends JFrame {
 			}
 
 		}
+		// #1-Smart if
+		if (column + this.sequence < this.numOfColumn && row - this.sequence > -1
+				&& this.logicalBoard[row][column] == FREE_SPACE
+				&& this.logicalBoard[row - (this.sequence - 1)][column + (this.sequence - 1)] == FREE_SPACE
+				&& this.logicalBoard[row - this.sequence][column + this.sequence] == FREE_SPACE
+				&& countHuman == (this.sequence - 2)) {
+			gradeHuman += 800;
+
+		}
 
 		// Down.
 		countComputer = countHuman = 0;
@@ -586,6 +596,7 @@ public class Game extends JFrame {
 				countHuman++;
 			}
 		}
+
 		if (i == this.sequence) {
 
 			if (countHuman > 0 && countComputer == 0) {
@@ -595,7 +606,15 @@ public class Game extends JFrame {
 			if (countComputer > 0 && countHuman == 0) {
 				gradeComputer += (int) Math.pow(10, countComputer);
 			}
+		}
 
+		// #1-Smart if
+		if (column - this.sequence > -1 && row + this.sequence < this.numOfRow
+				&& this.logicalBoard[row][column] == FREE_SPACE
+				&& this.logicalBoard[row + (this.sequence - 1)][column - (this.sequence - 1)] == FREE_SPACE
+				&& this.logicalBoard[row + this.sequence][column - this.sequence] == FREE_SPACE
+				&& countHuman == (this.sequence - 2)) {
+			gradeHuman += 800;
 		}
 
 		return gradeComputer - gradeHuman;
@@ -605,7 +624,6 @@ public class Game extends JFrame {
 		int gradeHuman = 0, gradeComputer = 0;
 		int countHuman = 0, countComputer = 0;
 		int i = 0;
-		
 
 		// Up.
 		for (i = 0; i < this.sequence && column - i > -1 && row - i > -1; i++) {
@@ -616,6 +634,7 @@ public class Game extends JFrame {
 				countHuman++;
 			}
 		}
+
 		if (i == this.sequence) {
 
 			if (countHuman > 0 && countComputer == 0) {
@@ -626,6 +645,14 @@ public class Game extends JFrame {
 				gradeComputer += (int) Math.pow(10, countComputer);
 			}
 
+		}
+		// #1-Smart if
+		if (column - this.sequence > -1 && row - this.sequence >-1
+				&& this.logicalBoard[row][column] == FREE_SPACE
+				&& this.logicalBoard[row - (this.sequence - 1)][column - (this.sequence - 1)] == FREE_SPACE
+				&& this.logicalBoard[row - this.sequence][column - this.sequence] == FREE_SPACE
+				&& countHuman == (this.sequence - 2)) {
+			gradeHuman += 800;
 		}
 
 		// Down.
@@ -648,12 +675,22 @@ public class Game extends JFrame {
 			if (countComputer > 0 && countHuman == 0) {
 				gradeComputer += (int) Math.pow(10, countComputer);
 			}
+		}
 
+		// #1-Smart if
+		if (column + this.sequence < this.numOfColumn && row +this.sequence <this.numOfRow
+				&& this.logicalBoard[row][column] == FREE_SPACE
+				&& this.logicalBoard[row + (this.sequence - 1)][column + (this.sequence - 1)] == FREE_SPACE
+				&& this.logicalBoard[row + this.sequence][column + this.sequence] == FREE_SPACE
+				&& countHuman == (this.sequence - 2)) {
+			gradeHuman += 800;
+			System.out.println("here");
 		}
 
 		return gradeComputer - gradeHuman;
 	}
 
+	//Give grade to the whole board by checking every free spcae
 	public int gradeBoard() {
 		int grade = 0;
 		for (int row = 0; row < this.numOfRow; row++) {
@@ -667,23 +704,20 @@ public class Game extends JFrame {
 		return grade;
 	}
 
-	public int[] computerMove()
-	{
+	public int[] computerMove() {
 		int[] gradeArray = new int[numOfColumn];
-		for(int column = 0; column <this.numOfColumn;column++)
-		{
-			if(this.currentRowIndex[column] == -1)
-			{
+		for (int column = 0; column < this.numOfColumn; column++) {
+			if (this.currentRowIndex[column] == -1) {
 				break;
 			}
 			this.logicalBoard[this.currentRowIndex[column]][column] = COMPUTER;
-			gradeArray[column] =gradeBoard();
+			gradeArray[column] = gradeBoard();
 			this.logicalBoard[this.currentRowIndex[column]][column] = FREE_SPACE;
 		}
 		return gradeArray;
-		
+
 	}
-	
+
 	// Find if Computer has a potential to win, if true - win
 	public boolean findPotentialWin(int row, int column) {
 		if (row == -1) {
@@ -716,7 +750,7 @@ public class Game extends JFrame {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			if (gameType == HUMAN_VS_HUMAN || gameType == CUSTOM_GAME) {
+			if (gameType == HUMAN_VS_HUMAN) {
 
 				if (turn == PLAYER_ONE && currentRowIndex[this.col] > -1) {
 
@@ -728,9 +762,9 @@ public class Game extends JFrame {
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkWinner(logicalBoard, this.col, PLAYER_ONE, "Player one")) {
+					if (checkWinner(logicalBoard, this.col, PLAYER_ONE, "Player One")) {
 
-						winnerDialog("Player one");
+						winnerDialog("Player One");
 						return;
 					}
 					currentRowIndex[this.col]--;
@@ -749,9 +783,9 @@ public class Game extends JFrame {
 					System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n")
 							.replace("]]", "").replace(", ", " "));
 
-					if (checkWinner(logicalBoard, this.col, PLAYER_TWO, "Player two")) {
+					if (checkWinner(logicalBoard, this.col, PLAYER_TWO, "Player Two")) {
 
-						winnerDialog("Player two");
+						winnerDialog("Player Two");
 						return;
 					}
 
@@ -763,7 +797,7 @@ public class Game extends JFrame {
 
 				}
 
-			} else {
+			} else if (gameType == HUMAN_VS_COMPUTER) {
 				// turn = HUMAN;
 				if (turn == HUMAN && currentRowIndex[this.col] > -1) {
 
@@ -807,6 +841,14 @@ public class Game extends JFrame {
 
 					}
 					System.out.println(Arrays.toString(gradeArray));
+					int max = gradeArray[0];
+					for (int i = 1; i < gradeArray.length; i++) {
+						if (gradeArray[i] > max) {
+
+							max = gradeArray[i];
+						}
+					}
+					System.out.println(max);
 
 					/*
 					 * new Thread(new Runnable() { public void run() { try { Thread.sleep(1500);
