@@ -12,14 +12,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 public class Game extends JFrame {
-	// VERSION: 2.8
-	// LAST EDIT: 16.4.20
+	// VERSION: 2.9
+	// LAST EDIT: 17.4.20
 
 	// Free space - 0, Player One(RED) - 1, Player Two(BLUE) - 2, Computer - 3
 	// HUMAN - 1, COMPUTER - 2
 	private final int HUMAN_VS_HUMAN = 0;
 	private final int HUMAN_VS_COMPUTER = 1;
-	private final int COMPUTER_VS_COMPUTER = 2;
 
 	private final int FREE_SPACE = 0;
 	private final int PLAYER_ONE = 1;
@@ -27,11 +26,7 @@ public class Game extends JFrame {
 	private final int COMPUTER = 3;
 	private final int HUMAN = 4;
 
-	private final int EASY = 1;
-	private final int MEDIUM = 3;
-	private final int HARD = 5;
 	private int level;
-
 	private int gameType;
 	private int turn;
 	private int startPlayer;
@@ -59,7 +54,6 @@ public class Game extends JFrame {
 
 	private int count = 0;
 	private int bestCol;
-	
 
 	// Builder for game.
 	public Game(int numOfRow, int numOfColumn, int sequence, int gameType, int level) {
@@ -99,25 +93,30 @@ public class Game extends JFrame {
 		}
 	}
 
-	// Create the Top Panel - Buttons,Show turn,Timer
+	// Create the Top Panel - Buttons,Show turn,Timer, Game Settings
 	public void createTopPanel() {
-		Font customFont = new Font("Arial", Font.PLAIN, 18);
-
-		this.topPanel = new JPanel(new GridLayout(1, 3));
+		this.topPanel = new JPanel(new BorderLayout());
 		this.topPanel.setBackground(Color.WHITE);
 		add(topPanel, BorderLayout.NORTH);
 
-		// Create Options block - Menu / reset
-		JPanel optionsJPanel = new JPanel();
-		optionsJPanel.setBackground(Color.WHITE);
+		JPanel gameInfoPanel = new JPanel(new GridLayout(1, 3));
 
+		topPanel.add(gameInfoPanel, BorderLayout.NORTH);
+
+		// Create Options panel - Menu / reset
+		JPanel optionsJPanel = new JPanel();
+		optionsJPanel.setBorder(new TitledBorder(null, "Options", TitledBorder.CENTER, TitledBorder.CENTER,
+				new Font("Arial", Font.PLAIN, 18)));
+
+		optionsJPanel.setBackground(Color.WHITE);
+		// Menu button
 		JButton menuButton = new JButton("Menu");
 		menuButton.addActionListener(e -> {
 			Main.main(null);
 			dispose();
 		});
 		optionsJPanel.add(menuButton);
-
+		// Menu rest button
 		JButton resetButton = new JButton("Reset");
 		resetButton.addActionListener(e -> {
 			new Game(numOfRow, numOfColumn, sequence, gameType, level);
@@ -125,23 +124,28 @@ public class Game extends JFrame {
 		});
 		optionsJPanel.add(resetButton);
 
-		optionsJPanel
-				.setBorder(new TitledBorder(null, "Options", TitledBorder.CENTER, TitledBorder.CENTER, customFont));
-		this.topPanel.add(optionsJPanel);
+		gameInfoPanel.add(optionsJPanel);
 
-		// Create turn block
+		// Create turn panel
 		JPanel turnJPanel = new JPanel();
 		turnJPanel.setBackground(Color.WHITE);
 		turnJPanel.setBorder(new TitledBorder(null, "Turn:", TitledBorder.CENTER, TitledBorder.CENTER,
 				new Font("Arial", Font.BOLD, 18)));
-		this.turnIcon = new JLabel();
-		turnJPanel.add(this.turnIcon);
-		this.topPanel.add(turnJPanel);
 
-		// Create Timer block
+		this.turnIcon = new JLabel();
+		this.turnIcon.setHorizontalTextPosition(JLabel.CENTER);
+		this.turnIcon.setVerticalTextPosition(JLabel.BOTTOM);
+		this.turnIcon.setFont(new Font("Arial", Font.BOLD, 14));
+
+		turnJPanel.add(this.turnIcon);
+		gameInfoPanel.add(turnJPanel);
+
+		// Create Timer panel
 		JPanel timerJPanel = new JPanel();
 		timerJPanel.setBackground(Color.WHITE);
-		timerJPanel.setBorder(new TitledBorder(null, "Timer", TitledBorder.CENTER, TitledBorder.CENTER, customFont));
+		timerJPanel.setBorder(new TitledBorder(null, "Timer", TitledBorder.CENTER, TitledBorder.CENTER,
+				new Font("Arial", Font.PLAIN, 18)));
+
 		JLabel timerJLabel = new JLabel("0:00");
 		timerJLabel.setFont(new Font("Arial", Font.BOLD, 30));
 		timerJPanel.add(timerJLabel);
@@ -154,7 +158,6 @@ public class Game extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				secOne++;
 				if (secOne == 10) {
-
 					secOne = 0;
 					secTwo++;
 				}
@@ -167,24 +170,33 @@ public class Game extends JFrame {
 			}
 		});
 		this.timer.start();
-		this.topPanel.add(timerJPanel);
+		gameInfoPanel.add(timerJPanel);
+
+		// Game Settings panel
+		JPanel gameSettingPanel = new JPanel(new GridLayout(1, 5));
+		gameSettingPanel.add(new CustomJlabel("Row", this.numOfRow, Color.BLACK, Color.WHITE, true,
+				new Font("Arial", Font.PLAIN, 18)));
+		gameSettingPanel.add(new CustomJlabel("Column", this.numOfColumn, Color.BLACK, Color.WHITE, true,
+				new Font("Arial", Font.PLAIN, 18)));
+		gameSettingPanel.add(new CustomJlabel("Sequence", this.sequence, Color.BLACK, Color.WHITE, true,
+				new Font("Arial", Font.PLAIN, 18)));
+		gameSettingPanel.add(
+				new CustomJlabel("Mode", gameType, Color.BLACK, Color.WHITE, true, new Font("Arial", Font.PLAIN, 18)));
+		gameSettingPanel.add(
+				new CustomJlabel("Level", level, Color.BLACK, Color.WHITE, true, new Font("Arial", Font.PLAIN, 18)));
+
+		topPanel.add(gameSettingPanel, BorderLayout.CENTER);
 	}
 
 	public void createButtomPanel() {
-		JLabel j;
-		JPanel butoomJPanel = new JPanel();
-		GridLayout g = new GridLayout(1, this.numOfColumn);
+		CustomJlabel numberOfColumn;
+		JPanel butoomJPanel = new JPanel(new GridLayout(1, this.numOfColumn));
 		add(butoomJPanel, BorderLayout.SOUTH);
-		butoomJPanel.setLayout(g);
 		for (int i = 0; i < this.numOfColumn; i++) {
-			j = new JLabel("" + (i + 1));
-			j.setFont(new Font("Arial", Font.BOLD, 24));
-			j.setHorizontalAlignment(JLabel.CENTER);
-			j.setBackground(new Color(63, 63, 63));
-			j.setForeground(Color.WHITE);
-			j.setBorder(new EmptyBorder(4, 0, 4, 0));
-			j.setOpaque(true);
-			butoomJPanel.add(j);
+			numberOfColumn = new CustomJlabel(null, i + 1, Color.WHITE, new Color(63, 63, 63), false,
+					new Font("Arial", Font.BOLD, 24));
+			numberOfColumn.setBorder(new EmptyBorder(4, 0, 4, 0));
+			butoomJPanel.add(numberOfColumn);
 		}
 	}
 
@@ -198,9 +210,9 @@ public class Game extends JFrame {
 
 		this.mainPanel = new JPanel();
 		this.gridLayout = new GridLayout(this.numOfRow, this.numOfColumn);
-		add(mainPanel, BorderLayout.CENTER);
 		this.mainPanel.setLayout(gridLayout);
-
+		add(mainPanel, BorderLayout.CENTER);
+		
 		this.currentRowIndex = new int[this.numOfColumn];
 		Arrays.fill(this.currentRowIndex, this.numOfRow - 1); // Initialize the array with the number of rows
 		this.graphicsBoard = new Button[this.numOfRow][this.numOfColumn];
@@ -247,8 +259,10 @@ public class Game extends JFrame {
 	public void changeTurnIcon(int turn) {
 		if (turn == PLAYER_ONE || turn == COMPUTER) {
 			this.turnIcon.setIcon(new ImageIcon(iconRed));
+			this.turnIcon.setText((gameType == HUMAN_VS_HUMAN ? "Player One" : "Computer"));
 		} else if (turn == PLAYER_TWO || turn == HUMAN) {
 			this.turnIcon.setIcon(new ImageIcon(iconBlue));
+			this.turnIcon.setText((gameType == HUMAN_VS_HUMAN ? "Player Two" : "Human"));
 		}
 	}
 
@@ -284,7 +298,7 @@ public class Game extends JFrame {
 		}
 	}
 
-	// Check if the board is full. False - exit, True - open dialog.
+	// Check if the board is full. False  exit, True - open dialog.
 	public void isBoardFull() {
 		for (int i = 0; i < this.numOfColumn; i++) {
 			if (this.logicalBoard[0][i] == FREE_SPACE) {
@@ -314,6 +328,20 @@ public class Game extends JFrame {
 				break;
 		}
 	}
+
+	//Update board(GUI & Logical)
+	public void updateBoard(int column, int player, int gameType, Image image) {
+		logicalBoard[currentRowIndex[column]][column] = player;
+		graphicsBoard[currentRowIndex[column]][column].setImage(image);
+		graphicsBoard[currentRowIndex[column]][column].repaint();
+		if (gameType == HUMAN_VS_COMPUTER) {
+			turn = 7 - turn;
+		} else {
+			turn = 3 - turn;
+		}
+		changeTurnIcon(turn);
+	}
+
 
 	public boolean checkRow(int[][] board, int row, int column, int player, String name) {
 		int count = 0;
@@ -346,13 +374,11 @@ public class Game extends JFrame {
 						System.out.println(name + " WIN(Left)");
 						return true;
 					}
-
 				} else {
 					count = 0;
 				}
 			}
 		}
-
 		return false;
 	}
 
@@ -466,12 +492,10 @@ public class Game extends JFrame {
 				|| checkBackDiagonal(board, currentRowIndex[column], column, player, name)) {
 			timer.stop();
 			return true;
-
 		}
 		return false;
-
 	}
-
+	
 	public int gradeRow(int row, int column) {
 		int gradeHuman = 0, gradeComputer = 0;
 		int countHuman = 0, countComputer = 0;
@@ -488,10 +512,8 @@ public class Game extends JFrame {
 		}
 
 		if (i == this.sequence) {
-
 			if (countHuman > 0 && countComputer == 0) {
 				gradeHuman += (int) Math.pow(10, countHuman);
-
 			}
 
 			if (countComputer > 0 && countHuman == 0) {
@@ -517,7 +539,6 @@ public class Game extends JFrame {
 		}
 
 		if (i == this.sequence) {
-
 			if (countHuman > 0 && countComputer == 0) {
 				gradeHuman += (int) Math.pow(10, countHuman);
 			}
@@ -579,7 +600,6 @@ public class Game extends JFrame {
 			}
 		}
 		if (i == this.sequence) {
-
 			if (countHuman > 0 && countComputer == 0) {
 				gradeHuman += (int) Math.pow(10, countHuman);
 			}
@@ -587,8 +607,8 @@ public class Game extends JFrame {
 			if (countComputer > 0 && countHuman == 0) {
 				gradeComputer += (int) Math.pow(10, countComputer);
 			}
-
 		}
+
 		// #1-Smart if
 		if (column + this.sequence < this.numOfColumn && row - this.sequence > -1
 				&& this.logicalBoard[row][column] == FREE_SPACE
@@ -601,7 +621,6 @@ public class Game extends JFrame {
 		// Down.
 		countComputer = countHuman = 0;
 		for (i = 0; i < this.sequence && column - i > -1 && row + i < this.numOfRow; i++) {
-
 			if (this.logicalBoard[row + i][column - i] == COMPUTER) {
 				countComputer++;
 			} else if (this.logicalBoard[row + i][column - i] == HUMAN) {
@@ -610,7 +629,6 @@ public class Game extends JFrame {
 		}
 
 		if (i == this.sequence) {
-
 			if (countHuman > 0 && countComputer == 0) {
 				gradeHuman += (int) Math.pow(10, countHuman);
 			}
@@ -628,7 +646,6 @@ public class Game extends JFrame {
 				&& countHuman == (this.sequence - 2)) {
 			gradeHuman += 800;
 		}
-
 		return gradeComputer - gradeHuman;
 	}
 
@@ -639,7 +656,6 @@ public class Game extends JFrame {
 
 		// Up.
 		for (i = 0; i < this.sequence && column - i > -1 && row - i > -1; i++) {
-
 			if (this.logicalBoard[row - i][column - i] == COMPUTER) {
 				countComputer++;
 			} else if (this.logicalBoard[row - i][column - i] == HUMAN) {
@@ -648,7 +664,6 @@ public class Game extends JFrame {
 		}
 
 		if (i == this.sequence) {
-
 			if (countHuman > 0 && countComputer == 0) {
 				gradeHuman += (int) Math.pow(10, countHuman);
 			}
@@ -668,7 +683,6 @@ public class Game extends JFrame {
 
 		// Down.
 		countComputer = countHuman = 0;
-
 		for (i = 0; i < this.sequence && column + i < this.numOfColumn && row + i < this.numOfRow; i++) {
 
 			if (this.logicalBoard[row + i][column + i] == COMPUTER) {
@@ -696,10 +710,23 @@ public class Game extends JFrame {
 				&& countHuman == (this.sequence - 2)) {
 			gradeHuman += 800;
 		}
-
 		return gradeComputer - gradeHuman;
 	}
 
+	// Give grade to the whole board by checking every space
+	public int gradeBoard() {
+			int grade = 0;
+			for (int row = 0; row < this.numOfRow; row++) {
+				for (int column = 0; column < this.numOfColumn; column++) {
+					grade += gradeRow(row, column);
+					grade += gradeColumn(row, column);
+					grade += gradeDiagonal(row, column);
+					grade += gradeBackDiagonal(row, column);
+				}
+			}
+			return grade;
+		}
+	
 	// Find if Computer has a potential to win, if true - win
 	public boolean findPotentialWin(int row, int column) {
 		if (row == -1) {
@@ -709,7 +736,6 @@ public class Game extends JFrame {
 
 		dupLogicalBoard[row][column] = COMPUTER;
 		return (checkWinner(dupLogicalBoard, column, COMPUTER, "Computer"));
-
 	}
 
 	// Find if Human has a potential to win, if true - block
@@ -721,89 +747,9 @@ public class Game extends JFrame {
 
 		dupLogicalBoard[row][column] = HUMAN;
 		return (checkWinner(dupLogicalBoard, column, HUMAN, "Human"));
-
 	}
-
-	// Give grade to the whole board by checking every space
-	public int gradeBoard() {
-		int grade = 0;
-		for (int row = 0; row < this.numOfRow; row++) {
-			for (int column = 0; column < this.numOfColumn; column++) {
-				grade += gradeRow(row, column);
-				grade += gradeColumn(row, column);
-				grade += gradeDiagonal(row, column);
-				grade += gradeBackDiagonal(row, column);
-			}
-		}
-		return grade;
-	}
-
-	// Group the function - gradeRow,gradeColumn, gradeDiagonal,
-	// gradeBackDiagonal,findPotentialWin,findPotentialLose
-	public void computerMove() {
-
-		for (int column = 0; column < this.numOfColumn; column++) {
-			if (findPotentialWin(currentRowIndex[column], column)) {
-				updateBoard(column, COMPUTER, HUMAN_VS_COMPUTER, imgRed);
-				winnerDialog("Computer");
-				return;
-			} else if (findPotentialLose(currentRowIndex[column], column)) {
-				updateBoard(column, COMPUTER, HUMAN_VS_COMPUTER, imgRed);
-				currentRowIndex[column]--;
-				return;
-			}	
-		}
-
-		if (startPlayer == COMPUTER && count < 4) {
-			new Thread(new Runnable() {
-				public void run() {
-					try {
-						Thread.sleep(1000);
-						int bestColumn = findPotentialSpace();
-						updateBoard(bestColumn, COMPUTER, HUMAN_VS_COMPUTER, imgRed);
-						currentRowIndex[bestColumn]--;
-					} catch (InterruptedException ex) {
-					}
-				}
-			}).start();
-		} else {
-
-			new Thread(new Runnable() {
-				public void run() {
-					try {
-						Thread.sleep(1000);
-						negMax(level, turn);
-						updateBoard(bestCol, COMPUTER, HUMAN_VS_COMPUTER, imgRed);
-						currentRowIndex[bestCol]--;
-						System.out.println("level:" + level);
-						System.out.println(bestCol+1);
-						
-					} catch (InterruptedException ex) {
-					}
-				}
-			}).start();
-
-		}
-		count++;
-		System.out.println("count " + count);
-
-	}
-
-	public void updateBoard(int column, int player, int gameType, Image image) {
-		logicalBoard[currentRowIndex[column]][column] = player;
-		graphicsBoard[currentRowIndex[column]][column].setImage(image);
-		graphicsBoard[currentRowIndex[column]][column].repaint();
-		if (gameType == HUMAN_VS_COMPUTER) {
-			turn = 7 - turn;
-		} else {
-			turn = 3 - turn;
-		}
-		changeTurnIcon(turn);
-
-	}
-
+		
 	public int recCheckRow(int row, int column, int startColumn) {
-
 		if ((column - startColumn == this.sequence) || (row > this.numOfRow - 1 || column > this.numOfColumn - 1)
 				|| (this.logicalBoard[row][column] == HUMAN)) {
 			return 0;
@@ -821,7 +767,6 @@ public class Game extends JFrame {
 	}
 
 	public int recCheckCol(int row, int column, int startRow) {
-
 		if ((row - startRow == this.sequence) || (row > this.numOfRow - 1 || column > this.numOfColumn - 1)
 				|| (this.logicalBoard[row][column] == HUMAN)) {
 			return 0;
@@ -874,8 +819,7 @@ public class Game extends JFrame {
 		return 1 + recCheckBackDiagonal(row + 1, column + 1, startRow, startColumn);
 	}
 
-	// Group the function -
-	// recCheckRow,recCheckCol,recCheckDiagonal,recCheckBackDiagonal
+	// Group the function - recCheckRow,recCheckCol,recCheckDiagonal,recCheckBackDiagonal
 	public int findPotentialSpace() {
 		int bestValue = 0;
 		int bestIndex = 0;
@@ -905,6 +849,55 @@ public class Game extends JFrame {
 		return bestIndex;
 	}
 
+	public void computerMove() {
+		for (int column = 0; column < this.numOfColumn; column++) {
+			if (findPotentialWin(currentRowIndex[column], column)) {
+				updateBoard(column, COMPUTER, HUMAN_VS_COMPUTER, imgRed);
+				winnerDialog("Computer");
+				return;
+			} else if (findPotentialLose(currentRowIndex[column], column)) {
+				updateBoard(column, COMPUTER, HUMAN_VS_COMPUTER, imgRed);
+				currentRowIndex[column]--;
+				return;
+			}
+		}
+
+		if (startPlayer == COMPUTER && count < 4) {
+			new Thread(new Runnable() {
+				public void run() {
+					try {
+						Thread.sleep(1000);
+						int bestColumn = findPotentialSpace();
+						updateBoard(bestColumn, COMPUTER, HUMAN_VS_COMPUTER, imgRed);
+						currentRowIndex[bestColumn]--;
+					} catch (InterruptedException ex) {
+					}
+				}
+			}).start();
+		} else {
+			new Thread(new Runnable() {
+				public void run() {
+					try {
+						Thread.sleep(1000);
+						negMax(level, turn);
+						//alphaBeta(level, turn, Integer.MIN_VALUE, Integer.MAX_VALUE);
+						System.out.println(bestCol);
+						updateBoard(bestCol, COMPUTER, HUMAN_VS_COMPUTER, imgRed);
+						currentRowIndex[bestCol]--;
+						System.out.println("level:" + level);
+						System.out.println(bestCol + 1);
+
+					} catch (InterruptedException ex) {
+					}
+				}
+			}).start();
+		}
+		count++;
+		System.out.println("count " + count);
+
+	}
+
+	//1# Algorithm
 	public int negMax(int depth, int turn) {
 		int best = Integer.MIN_VALUE;
 		int value, col;
@@ -928,6 +921,31 @@ public class Game extends JFrame {
 			}
 		}
 		return (best);
+	}
+	
+	//2# Algorithm
+	public int alphaBeta(int depth, int turn, int alpha, int beta) {
+		int value, col;
+		if (depth == 0) {
+			return -gradeBoard();
+		}
+		for (col = 0; col < this.numOfColumn; col++) {
+			if (this.currentRowIndex[col] > -1) {
+				this.logicalBoard[this.currentRowIndex[col]][col] = turn; // Make move
+				this.currentRowIndex[col]--;
+				value = -alphaBeta(depth - 1, 7 - turn, -beta, -alpha);
+				this.currentRowIndex[col]++;
+				this.logicalBoard[this.currentRowIndex[col]][col] = FREE_SPACE; // Undo move
+				if (value >= beta && depth < level) {
+					return beta;
+				}
+				if (value > alpha) {
+					alpha = value;
+					bestCol = col;
+				}
+			}
+		}
+		return alpha;
 	}
 
 	class AL implements ActionListener {

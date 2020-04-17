@@ -1,12 +1,10 @@
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
+
 
 public class Main {
 	private static final int HUMAN_VS_HUMAN = 0;
 	private static final int HUMAN_VS_COMPUTER = 1;
-	private static final int COMPUTER_VS_COMPUTER = 2;
 
 	private static final int DEFAULT_ROWS = 6;
 	private static final int DEFAULT_COLUMNS = 7;
@@ -29,7 +27,7 @@ public class Main {
 		UIManager.put("OptionPane.buttonPadding", 15);
 
 		ImageIcon icon = new ImageIcon("images/icon.png");
-		String[] options = { "Normal game", "Human VS Computer", "Computer VS Computer", "Custom game" };
+		String[] options = { "Normal game", "Human VS Computer", "Custom game" };
 
 		int response = JOptionPane.showOptionDialog(null, "Choose game type:", "Game Settings",
 				JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, options, options[0]);
@@ -47,11 +45,7 @@ public class Main {
 				break;
 
 			case 2:
-
-				break;
-
-			case 3:
-				createCustomGame();
+			createCustomGame();
 				break;
 
 			default:
