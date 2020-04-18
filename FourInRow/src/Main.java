@@ -38,14 +38,15 @@ public class Main {
 				System.exit(0);
 
 			case 0:
-				new Game(DEFAULT_ROWS, DEFAULT_COLUMNS, DEFAULT_SEQUENCE, HUMAN_VS_HUMAN, 0);
+				new Game(DEFAULT_ROWS, DEFAULT_COLUMNS, DEFAULT_SEQUENCE, HUMAN_VS_HUMAN, 0,-1);
 				break;
 			case 1:
+
 				chooseDifficulty(DEFAULT_ROWS, DEFAULT_COLUMNS, DEFAULT_SEQUENCE, HUMAN_VS_COMPUTER);
 				break;
 
 			case 2:
-			createCustomGame();
+				createCustomGame();
 				break;
 
 			default:
@@ -79,37 +80,41 @@ public class Main {
 				createCustomGame();
 			} else if (gameTypeID == HUMAN_VS_HUMAN) {
 				new Game(Integer.parseInt(numOfRowfField.getText()), Integer.parseInt(numOfColumnfField.getText()),
-						Integer.parseInt(numOfSequencefField.getText()), gameTypeID, 0);
+						Integer.parseInt(numOfSequencefField.getText()), gameTypeID, 0,-1);
 			} else if (gameTypeID == HUMAN_VS_COMPUTER) {
 				chooseDifficulty(Integer.parseInt(numOfRowfField.getText()),
 						Integer.parseInt(numOfColumnfField.getText()), Integer.parseInt(numOfSequencefField.getText()),
 						gameTypeID);
 			}
-
 		} else {
 			System.out.println("User canceled / closed the dialog, result = " + result);
 		}
 	}
 
 	public static void chooseDifficulty(int row, int column, int sequence, int gameTypeID) {
+		String [] algorithm = {"NegMax", "Alpha-Beta"};
+		int algorithmAnswer =  JOptionPane.showOptionDialog(null, "Choose algorithm:", "Game Settings",
+		JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, null, algorithm, algorithm[0]);
+		System.out.println(algorithmAnswer);
+
 		String[] difficultyList = { "Easy", "Medium", "Hard" };
 
-		int response = JOptionPane.showOptionDialog(null, "Choose difficulty level:", "Game Settings",
+		int difficulty = JOptionPane.showOptionDialog(null, "Choose difficulty level:", "Game Settings",
 				JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, null, difficultyList, difficultyList[0]);
-		switch (response) {
+		switch (difficulty) {
 			case -1:
 				System.out.println("Option Dialog Window Was Closed");
 				System.exit(0);
 
 			case 0:
-				new Game(row, column, sequence, gameTypeID, EASY);
+				new Game(row, column, sequence, gameTypeID, EASY,algorithmAnswer);
 				break;
 			case 1:
-				new Game(row, column, sequence, gameTypeID, MEDIUM);
+				new Game(row, column, sequence, gameTypeID, MEDIUM,algorithmAnswer);
 				break;
 
 			case 2:
-				new Game(row, column, sequence, gameTypeID, HARD);
+				new Game(row, column, sequence, gameTypeID, HARD,algorithmAnswer);
 				break;
 
 			default:
