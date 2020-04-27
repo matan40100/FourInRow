@@ -2,9 +2,13 @@ package Game;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Stack;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
@@ -23,11 +27,13 @@ public class Board {
 	protected static JLabel turnIcon;
 	protected static Timer timer;
 	protected static Queue<Integer> winnerSequenceIndex;
+	protected static Stack<Integer> undoStack;
+	protected static JButton undoButton;
 
-	// Builder for game.
+	// Builder for board.
 	public Board(int numOfRow, int numOfColumn) {
-
 		Board.winnerSequenceIndex = new LinkedList<>();
+		Board.undoStack = new Stack<Integer>();
 
 		Board.numOfRow = numOfRow;
 		Board.numOfColumn = numOfColumn;
@@ -42,7 +48,48 @@ public class Board {
 		boardFrame.pack();
 		boardFrame.setLocationRelativeTo(null);
 		boardFrame.setVisible(true);
+	}
+	
+	//Builder for load game
+	public Board(int numOfRow, int numOfColumn, int[][] logicalBoard, int[] currentRowIndex) {
+		Board.winnerSequenceIndex = new LinkedList<>();
+		Board.undoStack = new Stack<Integer>();
 
+		Board.numOfRow = numOfRow;
+		Board.numOfColumn = numOfColumn;
+
+		boardFrame = new JFrame("N In row");
+		boardFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		boardFrame.setResizable(false);
+		createTopPanel();
+		createButtomPanel();
+
+		this.mainPanel = new JPanel();
+		this.gridLayout = new GridLayout(numOfRow, numOfColumn);
+		this.mainPanel.setLayout(gridLayout);
+		boardFrame.add(mainPanel, BorderLayout.CENTER);
+
+		Board.logicalBoard = logicalBoard;
+		Board.currentRowIndex = currentRowIndex;
+		Board.graphicsBoard = new Button[numOfRow][numOfColumn];
+
+		for (int row = 0; row < Board.numOfRow; row++) {
+			for (int column = 0; column < Board.numOfColumn; column++) {
+				if (logicalBoard[row][column] == Game.COMPUTER || logicalBoard[row][column] == Game.PLAYER_ONE) {
+					Board.graphicsBoard[row][column] = new Button(Game.imgRed);
+				} else if (logicalBoard[row][column] == Game.HUMAN || logicalBoard[row][column] == Game.PLAYER_TWO) {
+					Board.graphicsBoard[row][column] = new Button(Game.imgBlue);
+				} else {
+					Board.graphicsBoard[row][column] = new Button(Game.imgFreeSpace);
+				}
+				Board.graphicsBoard[row][column].setPreferredSize(new Dimension(90, 90));
+				Board.graphicsBoard[row][column].addActionListener(new AL(column));
+				this.mainPanel.add(Board.graphicsBoard[row][column]);
+			}
+		}
+		boardFrame.pack();
+		boardFrame.setLocationRelativeTo(null);
+		boardFrame.setVisible(true);
 	}
 
 	// Create the Top Panel - Buttons,Show turn,Timer, Game Settings
@@ -55,8 +102,8 @@ public class Board {
 
 		topPanel.add(gameInfoPanel, BorderLayout.NORTH);
 
-		// Create Options panel - Menu / reset
-		JPanel optionsJPanel = new JPanel();
+		// Create Options panel - Menu / Reset / Undo / Save Game
+		JPanel optionsJPanel = new JPanel(new GridLayout(2, 2, 5, 5));
 		optionsJPanel.setBorder(new TitledBorder(null, "Options", TitledBorder.CENTER, TitledBorder.CENTER,
 				new Font("Arial", Font.PLAIN, 18)));
 
@@ -69,7 +116,6 @@ public class Board {
 			Game.main(null);
 
 		});
-		optionsJPanel.add(menuButton);
 
 		// Rest button
 		JButton resetButton = new JButton("Reset");
@@ -82,7 +128,23 @@ public class Board {
 						Game.computer.getAlgorithm());
 			}
 		});
+		
+		// Undo button
+		undoButton = new JButton("Undo");
+		undoButton.addActionListener(e -> {
+			undoMove();
+		});
+		
+		// Save matrix button
+		JButton saveGameButton = new JButton("Save Game");
+		saveGameButton.addActionListener(e -> {
+			saveGame();
+		});
+
+		optionsJPanel.add(menuButton);
 		optionsJPanel.add(resetButton);
+		optionsJPanel.add(undoButton);
+		optionsJPanel.add(saveGameButton);
 
 		gameInfoPanel.add(optionsJPanel);
 
@@ -183,6 +245,67 @@ public class Board {
 		}
 	}
 
+	//Returns the board to the previous state
+	public void undoMove() {
+		int lastTurn = 0, lastRow = 0, lastColumn = 0;
+		if (!undoStack.isEmpty()) {
+			lastTurn = undoStack.pop();
+			lastColumn = undoStack.pop();
+			lastRow = undoStack.pop();
+
+			logicalBoard[lastRow][lastColumn] = Game.FREE_SPACE;
+			graphicsBoard[lastRow][lastColumn].setImage(Game.imgFreeSpace);
+			graphicsBoard[lastRow][lastColumn].repaint();
+			currentRowIndex[lastColumn]++;
+
+			if (Game.gameType == Game.HUMAN_VS_COMPUTER) {
+				if (!undoStack.isEmpty()) {
+					lastTurn = undoStack.pop();
+					lastColumn = undoStack.pop();
+					lastRow = undoStack.pop();
+
+					logicalBoard[lastRow][lastColumn] = Game.FREE_SPACE;
+					graphicsBoard[lastRow][lastColumn].setImage(Game.imgFreeSpace);
+					graphicsBoard[lastRow][lastColumn].repaint();
+					currentRowIndex[lastColumn]++;
+				}
+			}
+
+			Game.turn = lastTurn;
+			changeTurnIcon(Game.turn);
+		}
+	}
+
+	//Save all the game info
+	public void saveGame() {
+		try {
+			BufferedWriter gameSaveFile = new BufferedWriter(new FileWriter("gamesave"));
+			gameSaveFile.write(Board.numOfRow + " ");
+			gameSaveFile.write(Board.numOfColumn + " ");
+			gameSaveFile.write(Game.sequence + " ");
+			gameSaveFile.write(Game.gameType + " ");
+			gameSaveFile.write(Game.turn + " ");
+			gameSaveFile.write(((Game.computer == null) ? 0 : Game.computer.getAlgorithm()) + " ");
+			gameSaveFile.write(((Game.computer == null) ? 0 : Game.computer.getLevel()) + " ");
+			gameSaveFile.newLine();
+
+			for (int row = 0; row < Board.numOfRow; row++) {
+				for (int column = 0; column < Board.numOfColumn; column++) {
+					gameSaveFile.write(logicalBoard[row][column] + " ");
+				}
+				gameSaveFile.newLine();
+			}
+
+			gameSaveFile.newLine();
+			for (int column = 0; column < Board.numOfColumn; column++) {
+				gameSaveFile.write(currentRowIndex[column] + " ");
+			}
+			gameSaveFile.flush();
+			gameSaveFile.close();
+		} catch (IOException e) {
+		}
+	}
+
 	// Return a duplicate of matrix
 	public static int[][] dupBoard(int[][] board) {
 		int dup[][] = new int[numOfRow][numOfColumn];
@@ -232,6 +355,10 @@ public class Board {
 		logicalBoard[currentRowIndex[column]][column] = player;
 		graphicsBoard[currentRowIndex[column]][column].setImage(image);
 		graphicsBoard[currentRowIndex[column]][column].repaint();
+
+		undoStack.push(currentRowIndex[column]);
+		undoStack.push(column);
+		undoStack.push(Game.turn);
 
 		System.out.println();
 		System.out.println(Arrays.deepToString(logicalBoard).replace("[", " ").replace("],", " \n").replace("]]", "")

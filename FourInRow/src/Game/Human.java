@@ -14,7 +14,6 @@ public class Human {
         this.name = name;
         this.image = image;
         this.winnerImage = winnerImage;
-        
     }
 
     public void playerMove(int column) {
@@ -25,10 +24,14 @@ public class Human {
             return;
         }
         Board.currentRowIndex[column]--;
-
         if(Board.isBoardFull())
         {
             Game.endGameDialog();
+        }
+
+        if(Game.gameType == Game.HUMAN_VS_COMPUTER)
+        {
+            Board.undoButton.setEnabled(false);
         }
     }
 }

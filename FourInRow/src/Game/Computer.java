@@ -13,8 +13,8 @@ public class Computer {
 
 	private int bestCol;
 	private int count = 0;
-	int a;
-	int b;
+	int Iterations = 0;
+
 
 	public Computer(int ID, String name, int level, int algorithm, Image image, Image winnerImage) {
 		this.ID = ID;
@@ -38,7 +38,6 @@ public class Computer {
 			} else if (Board.logicalBoard[row][column + i] == Game.HUMAN) {
 				countHuman++;
 			}
-
 		}
 
 		if (i == Game.sequence) {
@@ -222,6 +221,7 @@ public class Computer {
 				countHuman++;
 			}
 		}
+		
 		if (i == Game.sequence) {
 
 			if (countHuman > 0 && countComputer == 0) {
@@ -383,7 +383,7 @@ public class Computer {
 				Board.logicalBoard[Board.currentRowIndex[col]][col] = turn; // Make move
 				Board.currentRowIndex[col]--;
 				value = -negMax(depth - 1, 7 - turn);
-				a++;
+				Iterations++;
 				Board.currentRowIndex[col]++;
 				Board.logicalBoard[Board.currentRowIndex[col]][col] = Game.FREE_SPACE; // Undo move
 				if (value > best) {
@@ -409,7 +409,7 @@ public class Computer {
 				Board.logicalBoard[Board.currentRowIndex[col]][col] = turn; // Make move
 				Board.currentRowIndex[col]--;
 				value = -alphaBeta(depth - 1, 7 - turn, -beta, -alpha);
-				b++;
+				Iterations++;
 				Board.currentRowIndex[col]++;
 				Board.logicalBoard[Board.currentRowIndex[col]][col] = Game.FREE_SPACE; // Undo move
 				if (value >= beta && depth < level) {
@@ -425,7 +425,7 @@ public class Computer {
 	}
 
 	public void computerMove() {
-
+		
 		for (int column = 0; column < Board.numOfColumn; column++) {
 			if (findPotentialWin(Board.currentRowIndex[column], column)) {
 				Board.updateBoard(column, ID, Game.HUMAN_VS_COMPUTER, this.image);
@@ -448,19 +448,20 @@ public class Computer {
 
 			if (algorithm == Game.MINMAX) {
 				negMax(level, Game.turn);
-				System.out.println("Iterations: " + a);
+				System.out.println("Iterations: " + Iterations);
+				Iterations = 0;
 			} else if (algorithm == Game.ALPHA_BETA) {
 				alphaBeta(level, Game.turn, Integer.MIN_VALUE, Integer.MAX_VALUE);
-				System.out.println("Iterations: " + b);
+				System.out.println("Iterations: " + Iterations);
+				Iterations = 0;
 			}
 			Board.updateBoard(bestCol, ID, Game.HUMAN_VS_COMPUTER, image);
-
-			Board.currentRowIndex[bestCol]--;
+			Board.currentRowIndex[bestCol]--;	
 			if (Board.isBoardFull()) {
 				Game.endGameDialog();
 			}
-
 		}
+		Board.undoButton.setEnabled(true);
 	}
 
 	public int getLevel() {
