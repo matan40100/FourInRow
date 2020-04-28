@@ -10,8 +10,8 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class Game {
-    // VERSION: 3.2
-    // LAST EDIT: 27.4.20
+    // VERSION: 3.3
+    // LAST EDIT: 28.4.20
     // Free space - 0, Player One(RED) - 1, Player Two(BLUE) - 2, Computer - 3
     // HUMAN - 1, COMPUTER - 2
     protected static final int HUMAN_VS_HUMAN = 0;

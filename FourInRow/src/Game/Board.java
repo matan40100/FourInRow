@@ -28,12 +28,15 @@ public class Board {
 	protected static Timer timer;
 	protected static Queue<Integer> winnerSequenceIndex;
 	protected static Stack<Integer> undoStack;
+	protected static Stack<Integer> redoStack;
 	protected static JButton undoButton;
+	protected static JButton redoButton;
 
 	// Builder for board.
 	public Board(int numOfRow, int numOfColumn) {
 		Board.winnerSequenceIndex = new LinkedList<>();
 		Board.undoStack = new Stack<Integer>();
+		Board.redoStack = new Stack<Integer>();
 
 		Board.numOfRow = numOfRow;
 		Board.numOfColumn = numOfColumn;
@@ -49,11 +52,12 @@ public class Board {
 		boardFrame.setLocationRelativeTo(null);
 		boardFrame.setVisible(true);
 	}
-	
-	//Builder for load game
+
+	// Builder for load game
 	public Board(int numOfRow, int numOfColumn, int[][] logicalBoard, int[] currentRowIndex) {
 		Board.winnerSequenceIndex = new LinkedList<>();
 		Board.undoStack = new Stack<Integer>();
+		Board.redoStack = new Stack<Integer>();
 
 		Board.numOfRow = numOfRow;
 		Board.numOfColumn = numOfColumn;
@@ -103,7 +107,7 @@ public class Board {
 		topPanel.add(gameInfoPanel, BorderLayout.NORTH);
 
 		// Create Options panel - Menu / Reset / Undo / Save Game
-		JPanel optionsJPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+		JPanel optionsJPanel = new JPanel(new GridLayout(3, 2, 5, 5));
 		optionsJPanel.setBorder(new TitledBorder(null, "Options", TitledBorder.CENTER, TitledBorder.CENTER,
 				new Font("Arial", Font.PLAIN, 18)));
 
@@ -128,13 +132,20 @@ public class Board {
 						Game.computer.getAlgorithm());
 			}
 		});
-		
+
 		// Undo button
 		undoButton = new JButton("Undo");
 		undoButton.addActionListener(e -> {
 			undoMove();
 		});
-		
+
+		// Redo button
+		redoButton = new JButton("Redo");
+		redoButton.setEnabled(false);
+		redoButton.addActionListener(e -> {
+			redoMove();
+		});
+
 		// Save matrix button
 		JButton saveGameButton = new JButton("Save Game");
 		saveGameButton.addActionListener(e -> {
@@ -144,6 +155,7 @@ public class Board {
 		optionsJPanel.add(menuButton);
 		optionsJPanel.add(resetButton);
 		optionsJPanel.add(undoButton);
+		optionsJPanel.add(redoButton);
 		optionsJPanel.add(saveGameButton);
 
 		gameInfoPanel.add(optionsJPanel);
@@ -245,14 +257,24 @@ public class Board {
 		}
 	}
 
-	//Returns the board to the previous state
+	// Returns the board to the previous state
 	public void undoMove() {
-		int lastTurn = 0, lastRow = 0, lastColumn = 0;
+		int turn = 0, lastTurn = 0, lastRow = 0, lastColumn = 0;
 		if (!undoStack.isEmpty()) {
+
+			// Pop element from undoStack
+			turn = undoStack.pop();
 			lastTurn = undoStack.pop();
 			lastColumn = undoStack.pop();
 			lastRow = undoStack.pop();
 
+			// Push element to redoStack
+			redoStack.push(lastRow);
+			redoStack.push(lastColumn);
+			redoStack.push(lastTurn);
+			redoStack.push(turn);
+
+			// Update the board
 			logicalBoard[lastRow][lastColumn] = Game.FREE_SPACE;
 			graphicsBoard[lastRow][lastColumn].setImage(Game.imgFreeSpace);
 			graphicsBoard[lastRow][lastColumn].repaint();
@@ -260,10 +282,19 @@ public class Board {
 
 			if (Game.gameType == Game.HUMAN_VS_COMPUTER) {
 				if (!undoStack.isEmpty()) {
+					// Pop element from undoStack
+					turn = undoStack.pop();
 					lastTurn = undoStack.pop();
 					lastColumn = undoStack.pop();
 					lastRow = undoStack.pop();
 
+					// Push element to redoStack
+					redoStack.push(lastRow);
+					redoStack.push(lastColumn);
+					redoStack.push(lastTurn);
+					redoStack.push(turn);
+
+					// Update the board
 					logicalBoard[lastRow][lastColumn] = Game.FREE_SPACE;
 					graphicsBoard[lastRow][lastColumn].setImage(Game.imgFreeSpace);
 					graphicsBoard[lastRow][lastColumn].repaint();
@@ -271,12 +302,79 @@ public class Board {
 				}
 			}
 
+			// Update current turn
 			Game.turn = lastTurn;
 			changeTurnIcon(Game.turn);
+			redoButton.setEnabled(true);
 		}
 	}
 
-	//Save all the game info
+	//Returns the board to previous before undoMove
+	public void redoMove() {
+		int turn = 0, lastTurn = 0, lastRow = 0, lastColumn = 0;
+		Image image = null;
+		if (!redoStack.isEmpty()) {
+			// Pop element from redoStack
+			turn = redoStack.pop();
+			lastTurn = redoStack.pop();
+			lastColumn = redoStack.pop();
+			lastRow = redoStack.pop();
+
+			// Push element to redoStack
+			undoStack.push(lastRow);
+			undoStack.push(lastColumn);
+			undoStack.push(lastTurn);
+			undoStack.push(turn);
+
+			if (lastTurn == Game.PLAYER_ONE || lastTurn == Game.COMPUTER) {
+				image = Game.imgRed;
+			} else if (lastTurn == Game.PLAYER_TWO || lastTurn == Game.HUMAN) {
+				image = Game.imgBlue;
+			}
+
+			// Update the board
+			logicalBoard[lastRow][lastColumn] = lastTurn;
+			graphicsBoard[lastRow][lastColumn].setImage(image);
+			graphicsBoard[lastRow][lastColumn].repaint();
+			currentRowIndex[lastColumn]--;
+
+			if (Game.gameType == Game.HUMAN_VS_COMPUTER) {
+				if (!redoStack.isEmpty()) {
+					//Pop element from redoStack
+					turn = redoStack.pop();
+					lastTurn = redoStack.pop();
+					lastColumn = redoStack.pop();
+					lastRow = redoStack.pop();
+
+					// Push element to redoStack
+					undoStack.push(lastRow);
+					undoStack.push(lastColumn);
+					undoStack.push(lastTurn);
+					undoStack.push(turn);
+
+					if (lastTurn == Game.PLAYER_ONE || lastTurn == Game.COMPUTER) {
+						image = Game.imgRed;
+					} else if (lastTurn == Game.PLAYER_TWO || lastTurn == Game.HUMAN) {
+						image = Game.imgBlue;
+					}
+
+					// Update the board
+					logicalBoard[lastRow][lastColumn] = lastTurn;
+					graphicsBoard[lastRow][lastColumn].setImage(image);
+					graphicsBoard[lastRow][lastColumn].repaint();
+					currentRowIndex[lastColumn]--;
+				}
+			}
+
+			// Update current turn
+			Game.turn = turn;
+			changeTurnIcon(Game.turn);
+			redoButton.setEnabled(true);
+
+		}
+	}
+
+	// Save all the game info
 	public void saveGame() {
 		try {
 			BufferedWriter gameSaveFile = new BufferedWriter(new FileWriter("gamesave"));
@@ -302,6 +400,7 @@ public class Board {
 			}
 			gameSaveFile.flush();
 			gameSaveFile.close();
+			System.out.println("Game saved");
 		} catch (IOException e) {
 		}
 	}
@@ -371,6 +470,7 @@ public class Board {
 			Game.turn = 3 - Game.turn;
 		}
 		changeTurnIcon(Game.turn);
+		undoStack.push(Game.turn);
 	}
 
 	public static boolean checkRow(int[][] board, int row, int column, int player, String name) {
