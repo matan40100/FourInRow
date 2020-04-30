@@ -62,7 +62,7 @@ public class Game {
         Game.sequence = sequence;
         Game.gameType = gameType;
         Game.humanOne = new Human(PLAYER_ONE, "Player One", imgRed, redTrophy);
-        Game.humanTwo = new Human(PLAYER_TWO, "Player_Two", imgBlue, blueTrophy);
+        Game.humanTwo = new Human(PLAYER_TWO, "Player Two", imgBlue, blueTrophy);
         this.gameBoard = new Board(numOfRow, numOfColumn);
 
         turn = rand.nextInt(2 - 1 + 1) + 1;
@@ -103,9 +103,9 @@ public class Game {
         printGameInfo(numOfRow, numOfColumn, sequence, gameType);
     }
 
-    //Builder for load game
-    public Game(int numOfRow, int numOfColumn,int sequence,int gameType,int turn,int algorithm,int level,int [][]logicalBoard, int [] currentRowIndex)
-    {
+    // Builder for load game
+    public Game(int numOfRow, int numOfColumn, int sequence, int gameType, int turn, int algorithm, int level,
+            int[][] logicalBoard, int[] currentRowIndex) {
         try {
             createImages();
         } catch (IOException e) {
@@ -115,18 +115,15 @@ public class Game {
         Game.sequence = sequence;
         Game.gameType = gameType;
         Game.turn = turn;
-        if(gameType == HUMAN_VS_HUMAN)
-        {
+        if (gameType == HUMAN_VS_HUMAN) {
             Game.humanOne = new Human(PLAYER_ONE, "Player One", imgRed, redTrophy);
-            Game.humanTwo = new Human(PLAYER_TWO, "Player_Two", imgBlue, blueTrophy);
-            this.gameBoard= new Board(numOfRow,numOfColumn,logicalBoard,currentRowIndex);
+            Game.humanTwo = new Human(PLAYER_TWO, "Player Two", imgBlue, blueTrophy);
+            this.gameBoard = new Board(numOfRow, numOfColumn, logicalBoard, currentRowIndex);
             Board.changeTurnIcon(turn);
-        }
-        else if (gameType == HUMAN_VS_COMPUTER)
-        {
+        } else if (gameType == HUMAN_VS_COMPUTER) {
             Game.computer = new Computer(COMPUTER, "Computer", level, algorithm, imgRed, redTrophy);
-            Game.humanOne = new Human(HUMAN, "Human", imgBlue, blueTrophy); 
-            this.gameBoard= new Board(numOfRow,numOfColumn,logicalBoard,currentRowIndex);
+            Game.humanOne = new Human(HUMAN, "Human", imgBlue, blueTrophy);
+            this.gameBoard = new Board(numOfRow, numOfColumn, logicalBoard, currentRowIndex);
             Board.changeTurnIcon(turn);
             if (turn == computer.getID()) {
                 new Thread(new Runnable() {
@@ -142,7 +139,7 @@ public class Game {
             }
         }
     }
-    
+
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -155,7 +152,7 @@ public class Game {
         UIManager.put("OptionPane.buttonPadding", 15);
 
         JFrame mainFrame = new JFrame("N In Row");
-        JPanel buttonsPanel = new JPanel(new GridLayout(2,3,10,10));
+        JPanel buttonsPanel = new JPanel(new GridLayout(2, 3, 10, 10));
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JLabel logo = new JLabel();
         ImageIcon image = new ImageIcon("images/icon.png");
@@ -197,8 +194,8 @@ public class Game {
         });
 
         loadGame.addActionListener(e -> {
-            loadGame(); 
-            mainFrame.dispose();   
+            loadGame();
+            mainFrame.dispose();
         });
 
         buttonsPanel.add(normalGameButton);
@@ -211,12 +208,12 @@ public class Game {
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setVisible(true);
     }
-    
-    //Loading all game information
+
+    // Loading all game information
     public static void loadGame() {
         int numOfRow = 0, numOfColumn = 0, sequence = 0, gameType = 0, turn = 0, level = 0, algorithm = 0;
-        int [][] logicalBoard;
-        int [] currentRowIndex;
+        int[][] logicalBoard;
+        int[] currentRowIndex;
 
         try {
             Scanner input = new Scanner(new File("gamesave"));
@@ -227,22 +224,21 @@ public class Game {
             turn = input.nextInt();
             algorithm = input.nextInt();
             level = input.nextInt();
-            logicalBoard = new int [numOfRow][numOfColumn];
+            logicalBoard = new int[numOfRow][numOfColumn];
             currentRowIndex = new int[numOfColumn];
 
-            for(int row = 0; row <numOfRow; row++)
-            {
-                for(int column = 0; column < numOfColumn; column++)
-                {
+            for (int row = 0; row < numOfRow; row++) {
+                for (int column = 0; column < numOfColumn; column++) {
                     logicalBoard[row][column] = input.nextInt();
                 }
             }
-           
-            for(int column = 0; column < numOfColumn; column++)
-            {
+
+            for (int column = 0; column < numOfColumn; column++) {
                 currentRowIndex[column] = input.nextInt();
             }
-            new Game(numOfRow, numOfColumn, sequence, gameType,turn,algorithm,level,logicalBoard,currentRowIndex);
+
+            
+            new Game(numOfRow, numOfColumn, sequence, gameType, turn, algorithm, level, logicalBoard, currentRowIndex);
         } catch (FileNotFoundException e1) {
             System.out.println("Cant open the file");
         }
@@ -353,8 +349,10 @@ public class Game {
 
     // Open dialog that show who win the game with options to play agin or exit.
     public static void winnerDialog(String winnerName) {
+        int response;
         ImageIcon icon = new ImageIcon("Images/trophy.png");
-        String[] options = { "Play again", "Exit" };
+        String[] optionsOne = { "Play again", "Replay", "Exit" };
+        String[] optionsTwo = { "Play again", "Exit" };
 
         if (winnerName.equals("Player One") || winnerName.equals("Computer")) {
             UIManager.put("OptionPane.messageForeground", Color.RED);
@@ -364,8 +362,16 @@ public class Game {
             UIManager.put("OptionPane.messageFont", new Font("Arial", Font.BOLD, 14));
         }
 
-        int response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
-                JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, options, options[0]);
+        //if the player use undo button - He cant use replay button
+        if(Board.redoStack.isEmpty())
+        {
+        response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
+                JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, optionsOne, optionsOne[0]);
+        }else{
+            response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
+            JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, optionsTwo, optionsTwo[0]);
+           
+        }
 
         switch (response) {
             case -1:
@@ -381,7 +387,17 @@ public class Game {
                 }
                 break;
             case 1:
-                System.exit(0);
+                if(!Board.redoStack.isEmpty())
+                {
+                    System.exit(0);
+                }
+                else{
+                Board.replayGame();
+                }
+                break;
+
+            case 2:
+            System.exit(0);
                 break;
             default:
                 break;

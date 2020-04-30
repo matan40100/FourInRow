@@ -29,6 +29,7 @@ public class Board {
 	protected static Queue<Integer> winnerSequenceIndex;
 	protected static Stack<Integer> undoStack;
 	protected static Stack<Integer> redoStack;
+	protected static Queue<Integer> replayQueue;
 	protected static JButton undoButton;
 	protected static JButton redoButton;
 
@@ -37,6 +38,7 @@ public class Board {
 		Board.winnerSequenceIndex = new LinkedList<>();
 		Board.undoStack = new Stack<Integer>();
 		Board.redoStack = new Stack<Integer>();
+		Board.replayQueue = new LinkedList<>();
 
 		Board.numOfRow = numOfRow;
 		Board.numOfColumn = numOfColumn;
@@ -309,7 +311,7 @@ public class Board {
 		}
 	}
 
-	//Returns the board to previous before undoMove
+	// Returns the board to previous before undoMove
 	public void redoMove() {
 		int turn = 0, lastTurn = 0, lastRow = 0, lastColumn = 0;
 		Image image = null;
@@ -340,7 +342,7 @@ public class Board {
 
 			if (Game.gameType == Game.HUMAN_VS_COMPUTER) {
 				if (!redoStack.isEmpty()) {
-					//Pop element from redoStack
+					// Pop element from redoStack
 					turn = redoStack.pop();
 					lastTurn = redoStack.pop();
 					lastColumn = redoStack.pop();
@@ -398,11 +400,89 @@ public class Board {
 			for (int column = 0; column < Board.numOfColumn; column++) {
 				gameSaveFile.write(currentRowIndex[column] + " ");
 			}
+			gameSaveFile.newLine();
+			
 			gameSaveFile.flush();
 			gameSaveFile.close();
 			System.out.println("Game saved");
 		} catch (IOException e) {
 		}
+	}
+
+	public static void replayGame() {
+		
+		for (int row = 0; row < Board.numOfRow; row++) {
+			for (int column = 0; column < Board.numOfColumn; column++) {
+				Board.graphicsBoard[row][column].setImage(Game.imgFreeSpace);
+				Board.graphicsBoard[row][column].repaint();
+			}
+		}
+		new Thread(new Runnable() {
+			public void run() {
+				try {
+					Image image = null;
+					Game.turn = 0;
+					while (replayQueue.size() != 0) {
+						Thread.sleep(500);
+						int turn = 0, row = 0, column = 0;
+						row = replayQueue.remove();
+						column = replayQueue.remove();
+						turn = replayQueue.remove();
+						if (turn == Game.PLAYER_ONE || turn == Game.COMPUTER) {
+							image = Game.imgRed;
+						} else if (turn == Game.PLAYER_TWO || turn == Game.HUMAN) {
+							image = Game.imgBlue;
+						}
+
+						logicalBoard[row][column] = turn;
+						graphicsBoard[row][column].setImage(image);
+						graphicsBoard[row][column].repaint();
+						
+						changeTurnIcon(turn);
+						
+						
+					}
+				} catch (InterruptedException ex) {
+				}
+			}
+		}).start();
+	}
+
+	public static void animate(int column, Image image) {
+
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Image freeCellImage = Game.imgFreeSpace;
+
+					for (int i = 0; i <= currentRowIndex[column]; i++) {
+						
+						graphicsBoard[i][column].setImage(image);
+						graphicsBoard[i][column].repaint();
+						System.out.println(currentRowIndex[column]);
+
+						Thread.sleep(100);
+
+						if (i != currentRowIndex[column]) {
+							graphicsBoard[i][column].setImage(freeCellImage);
+							graphicsBoard[i][column].repaint();
+						}
+					}
+				} catch (InterruptedException ex) {
+				}
+			}
+		});
+
+		t.start();
+		System.out.println(t.isAlive());
+
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+
+			e.printStackTrace();
+		}
+
 	}
 
 	// Return a duplicate of matrix
@@ -429,7 +509,6 @@ public class Board {
 
 	// Change the image to show the sequence win
 	public static void showWinnerSequence(Image tropyImage) {
-		System.out.println(winnerSequenceIndex);
 		int row, column;
 		while (!Board.winnerSequenceIndex.isEmpty()) {
 			row = winnerSequenceIndex.remove();
@@ -452,8 +531,13 @@ public class Board {
 	// Update board(GUI & Logical)
 	public static void updateBoard(int column, int player, int gameType, Image image) {
 		logicalBoard[currentRowIndex[column]][column] = player;
+ 
 		graphicsBoard[currentRowIndex[column]][column].setImage(image);
-		graphicsBoard[currentRowIndex[column]][column].repaint();
+		graphicsBoard[currentRowIndex[column]][column].repaint(); 
+
+		replayQueue.add(currentRowIndex[column]);
+		replayQueue.add(column);
+		replayQueue.add(Game.turn);
 
 		undoStack.push(currentRowIndex[column]);
 		undoStack.push(column);
