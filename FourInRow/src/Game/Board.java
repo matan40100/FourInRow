@@ -3,8 +3,11 @@ package Game;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -33,7 +36,7 @@ public class Board {
 	protected static JButton undoButton;
 	protected static JButton redoButton;
 
-	// Builder for board.
+	// Constructor for board.
 	public Board(int numOfRow, int numOfColumn) {
 		Board.winnerSequenceIndex = new LinkedList<>();
 		Board.undoStack = new Stack<Integer>();
@@ -55,11 +58,13 @@ public class Board {
 		boardFrame.setVisible(true);
 	}
 
-	// Builder for load game
-	public Board(int numOfRow, int numOfColumn, int[][] logicalBoard, int[] currentRowIndex) {
+	// Constructor for loading board.
+	public Board(int numOfRow, int numOfColumn, int[][] logicalBoard, int[] currentRowIndex, Stack<Integer> undoStack,
+			Stack<Integer> redoStack, Queue<Integer> replayQueue) {
 		Board.winnerSequenceIndex = new LinkedList<>();
-		Board.undoStack = new Stack<Integer>();
-		Board.redoStack = new Stack<Integer>();
+		Board.undoStack = undoStack;
+		Board.redoStack = redoStack;
+		Board.replayQueue = replayQueue;
 
 		Board.numOfRow = numOfRow;
 		Board.numOfColumn = numOfColumn;
@@ -98,7 +103,7 @@ public class Board {
 		boardFrame.setVisible(true);
 	}
 
-	// Create the Top Panel - Buttons,Show turn,Timer, Game Settings
+	// Create the Top Panel - Buttons,Show turn,Timer, Game Settings.
 	public void createTopPanel() {
 		this.topPanel = new JPanel(new BorderLayout());
 		this.topPanel.setBackground(Color.WHITE);
@@ -380,6 +385,7 @@ public class Board {
 	public void saveGame() {
 		try {
 			BufferedWriter gameSaveFile = new BufferedWriter(new FileWriter("gamesave"));
+			// Write Game info
 			gameSaveFile.write(Board.numOfRow + " ");
 			gameSaveFile.write(Board.numOfColumn + " ");
 			gameSaveFile.write(Game.sequence + " ");
@@ -389,6 +395,7 @@ public class Board {
 			gameSaveFile.write(((Game.computer == null) ? 0 : Game.computer.getLevel()) + " ");
 			gameSaveFile.newLine();
 
+			// Write Board
 			for (int row = 0; row < Board.numOfRow; row++) {
 				for (int column = 0; column < Board.numOfColumn; column++) {
 					gameSaveFile.write(logicalBoard[row][column] + " ");
@@ -397,11 +404,24 @@ public class Board {
 			}
 
 			gameSaveFile.newLine();
+
+			// Write currentRowIndex array
 			for (int column = 0; column < Board.numOfColumn; column++) {
 				gameSaveFile.write(currentRowIndex[column] + " ");
 			}
 			gameSaveFile.newLine();
-			
+
+			FileOutputStream objectFile = new FileOutputStream(new File("objects"));
+			ObjectOutputStream objectWriter = new ObjectOutputStream(objectFile);
+
+			// Write objects to file
+			objectWriter.writeObject(undoStack);
+			objectWriter.writeObject(redoStack);
+			objectWriter.writeObject(replayQueue);
+
+			objectWriter.close();
+			objectFile.close();
+
 			gameSaveFile.flush();
 			gameSaveFile.close();
 			System.out.println("Game saved");
@@ -409,80 +429,58 @@ public class Board {
 		}
 	}
 
+	// Replay
 	public static void replayGame() {
-		
+		// Reset the board
 		for (int row = 0; row < Board.numOfRow; row++) {
 			for (int column = 0; column < Board.numOfColumn; column++) {
 				Board.graphicsBoard[row][column].setImage(Game.imgFreeSpace);
 				Board.graphicsBoard[row][column].repaint();
 			}
 		}
-		new Thread(new Runnable() {
-			public void run() {
-				try {
-					Image image = null;
-					Game.turn = 0;
-					while (replayQueue.size() != 0) {
-						Thread.sleep(500);
-						int turn = 0, row = 0, column = 0;
-						row = replayQueue.remove();
-						column = replayQueue.remove();
-						turn = replayQueue.remove();
-						if (turn == Game.PLAYER_ONE || turn == Game.COMPUTER) {
-							image = Game.imgRed;
-						} else if (turn == Game.PLAYER_TWO || turn == Game.HUMAN) {
-							image = Game.imgBlue;
-						}
+		Arrays.fill(Board.currentRowIndex, Board.numOfRow - 1);
 
-						logicalBoard[row][column] = turn;
-						graphicsBoard[row][column].setImage(image);
-						graphicsBoard[row][column].repaint();
-						
-						changeTurnIcon(turn);
-						
-						
-					}
-				} catch (InterruptedException ex) {
+		Image image = null;
+		Game.turn = 0;
+		while (replayQueue.size() != 0) {
+			try {
+				Thread.sleep(500);
+				int turn = 0, row = 0, column = 0;
+				row = replayQueue.remove();
+				column = replayQueue.remove();
+				turn = replayQueue.remove();
+				if (turn == Game.PLAYER_ONE || turn == Game.COMPUTER) {
+					image = Game.imgRed;
+				} else if (turn == Game.PLAYER_TWO || turn == Game.HUMAN) {
+					image = Game.imgBlue;
 				}
+
+				animate(column, image);
+				Board.currentRowIndex[column]--;
+				changeTurnIcon(turn);
+			} catch (InterruptedException ex) {
 			}
-		}).start();
+		}
 	}
 
+	//Make disc fall animation.
 	public static void animate(int column, Image image) {
+		for (int i = 0; i <= currentRowIndex[column]; i++) {
 
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				try {
-					Image freeCellImage = Game.imgFreeSpace;
+			graphicsBoard[i][column].setImage(image);
+			graphicsBoard[i][column].repaint();
 
-					for (int i = 0; i <= currentRowIndex[column]; i++) {
-						
-						graphicsBoard[i][column].setImage(image);
-						graphicsBoard[i][column].repaint();
-						System.out.println(currentRowIndex[column]);
-
-						Thread.sleep(100);
-
-						if (i != currentRowIndex[column]) {
-							graphicsBoard[i][column].setImage(freeCellImage);
-							graphicsBoard[i][column].repaint();
-						}
-					}
-				} catch (InterruptedException ex) {
-				}
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-		});
 
-		t.start();
-		System.out.println(t.isAlive());
-
-		try {
-			t.join();
-		} catch (InterruptedException e) {
-
-			e.printStackTrace();
+			if (i != currentRowIndex[column]) {
+				graphicsBoard[i][column].setImage(Game.imgFreeSpace);
+				graphicsBoard[i][column].repaint();
+			}
 		}
-
 	}
 
 	// Return a duplicate of matrix
@@ -507,7 +505,7 @@ public class Board {
 		}
 	}
 
-	// Change the image to show the sequence win
+	// Change the images to show the sequence win
 	public static void showWinnerSequence(Image tropyImage) {
 		int row, column;
 		while (!Board.winnerSequenceIndex.isEmpty()) {
@@ -518,7 +516,7 @@ public class Board {
 		}
 	}
 
-	// Check if the board is full. False exit, True - open dialog.
+	// Check if the board is full.
 	public static boolean isBoardFull() {
 		for (int i = 0; i < Board.numOfColumn; i++) {
 			if (Board.logicalBoard[0][i] == Game.FREE_SPACE) {
@@ -529,11 +527,8 @@ public class Board {
 	}
 
 	// Update board(GUI & Logical)
-	public static void updateBoard(int column, int player, int gameType, Image image) {
+	public static void updateBoard(int column, int player, int gameType) {
 		logicalBoard[currentRowIndex[column]][column] = player;
- 
-		graphicsBoard[currentRowIndex[column]][column].setImage(image);
-		graphicsBoard[currentRowIndex[column]][column].repaint(); 
 
 		replayQueue.add(currentRowIndex[column]);
 		replayQueue.add(column);

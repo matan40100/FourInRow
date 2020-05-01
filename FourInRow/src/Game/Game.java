@@ -4,14 +4,23 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Stack;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Game {
-    // VERSION: 3.3
-    // LAST EDIT: 28.4.20
+    /**
+     * @author Matan
+     * @version 3.5
+     * @since 1.5.2020
+     */
+
     // Free space - 0, Player One(RED) - 1, Player Two(BLUE) - 2, Computer - 3
     // HUMAN - 1, COMPUTER - 2
     protected static final int HUMAN_VS_HUMAN = 0;
@@ -50,7 +59,7 @@ public class Game {
     protected static Image blueTrophy;
     protected static Image imgFreeSpace;
 
-    // Builder for Human VS Human game
+    // Constructor for Human VS Human game
     public Game(int numOfRow, int numOfColumn, int sequence, int gameType) {
         Random rand = new Random();
         try {
@@ -71,7 +80,7 @@ public class Game {
         printGameInfo(numOfRow, numOfColumn, sequence, gameType);
     }
 
-    // Builder for Human VS Computer game
+    // Constructor for Human VS Computer game
     public Game(int numOfRow, int numOfColumn, int sequence, int gameType, int level, int algorithm) {
         Random rand = new Random();
         try {
@@ -103,9 +112,10 @@ public class Game {
         printGameInfo(numOfRow, numOfColumn, sequence, gameType);
     }
 
-    // Builder for load game
+    // Constructor for loading game
     public Game(int numOfRow, int numOfColumn, int sequence, int gameType, int turn, int algorithm, int level,
-            int[][] logicalBoard, int[] currentRowIndex) {
+            int[][] logicalBoard, int[] currentRowIndex, Stack<Integer> undoStack, Stack<Integer> redoStack,
+            Queue<Integer> replayQueue) {
         try {
             createImages();
         } catch (IOException e) {
@@ -115,15 +125,18 @@ public class Game {
         Game.sequence = sequence;
         Game.gameType = gameType;
         Game.turn = turn;
+
         if (gameType == HUMAN_VS_HUMAN) {
             Game.humanOne = new Human(PLAYER_ONE, "Player One", imgRed, redTrophy);
             Game.humanTwo = new Human(PLAYER_TWO, "Player Two", imgBlue, blueTrophy);
-            this.gameBoard = new Board(numOfRow, numOfColumn, logicalBoard, currentRowIndex);
+            this.gameBoard = new Board(numOfRow, numOfColumn, logicalBoard, currentRowIndex, undoStack, redoStack,
+                    replayQueue);
             Board.changeTurnIcon(turn);
         } else if (gameType == HUMAN_VS_COMPUTER) {
             Game.computer = new Computer(COMPUTER, "Computer", level, algorithm, imgRed, redTrophy);
             Game.humanOne = new Human(HUMAN, "Human", imgBlue, blueTrophy);
-            this.gameBoard = new Board(numOfRow, numOfColumn, logicalBoard, currentRowIndex);
+            this.gameBoard = new Board(numOfRow, numOfColumn, logicalBoard, currentRowIndex, undoStack, redoStack,
+                    replayQueue);
             Board.changeTurnIcon(turn);
             if (turn == computer.getID()) {
                 new Thread(new Runnable() {
@@ -147,18 +160,19 @@ public class Game {
                 | UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
-        UIManager.put("OptionPane.messageFont", new Font("Arial", Font.PLAIN, 16));
+
         UIManager.put("OptionPane.buttonFont", new Font("Arial", Font.PLAIN, 14));
         UIManager.put("OptionPane.buttonPadding", 15);
 
         JFrame mainFrame = new JFrame("N In Row");
-        JPanel buttonsPanel = new JPanel(new GridLayout(2, 3, 10, 10));
-        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        JLabel logo = new JLabel();
-        ImageIcon image = new ImageIcon("images/icon.png");
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setBackground(Color.WHITE);
 
+        JPanel buttonsPanel = new JPanel(new GridLayout(2, 3, 10, 10));
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        ImageIcon image = new ImageIcon("images/icon.png");
+        JLabel logo = new JLabel();
         logo.setIcon(image);
         logo.setHorizontalAlignment(SwingConstants.CENTER);
         mainFrame.add(logo, BorderLayout.NORTH);
@@ -209,13 +223,16 @@ public class Game {
         mainFrame.setVisible(true);
     }
 
-    // Loading all game information
+    // Loading all game information(Game info, Board,Stacks,Queue)
     public static void loadGame() {
         int numOfRow = 0, numOfColumn = 0, sequence = 0, gameType = 0, turn = 0, level = 0, algorithm = 0;
         int[][] logicalBoard;
         int[] currentRowIndex;
-
+        Stack<Integer> undoStack = new Stack<Integer>();
+        Stack<Integer> redoStack = new Stack<Integer>();
+        Queue<Integer> replayQueue = new LinkedList<Integer>();
         try {
+            // Read Game info
             Scanner input = new Scanner(new File("gamesave"));
             numOfRow = input.nextInt();
             numOfColumn = input.nextInt();
@@ -227,18 +244,32 @@ public class Game {
             logicalBoard = new int[numOfRow][numOfColumn];
             currentRowIndex = new int[numOfColumn];
 
+            // Read Board
             for (int row = 0; row < numOfRow; row++) {
                 for (int column = 0; column < numOfColumn; column++) {
                     logicalBoard[row][column] = input.nextInt();
                 }
             }
 
+            // Read currentRowIndex array
             for (int column = 0; column < numOfColumn; column++) {
                 currentRowIndex[column] = input.nextInt();
             }
 
+            try {
+                FileInputStream objectFile = new FileInputStream(new File("objects"));
+                ObjectInputStream objectReader = new ObjectInputStream(objectFile);
+
+                // Read objects
+                undoStack = (Stack<Integer>) objectReader.readObject();
+                redoStack = (Stack<Integer>) objectReader.readObject();
+                replayQueue = (Queue<Integer>) objectReader.readObject();
+            } catch (Exception e) {
+            }
+
+            new Game(numOfRow, numOfColumn, sequence, gameType, turn, algorithm, level, logicalBoard, currentRowIndex,
+                    undoStack, redoStack, replayQueue);
             
-            new Game(numOfRow, numOfColumn, sequence, gameType, turn, algorithm, level, logicalBoard, currentRowIndex);
         } catch (FileNotFoundException e1) {
             System.out.println("Cant open the file");
         }
@@ -292,7 +323,6 @@ public class Game {
         }
 
         String[] difficultyList = { "Easy", "Medium", "Hard" };
-
         int difficulty = JOptionPane.showOptionDialog(null, "Choose difficulty level:", "Game Settings",
                 JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, null, difficultyList, difficultyList[0]);
         switch (difficulty) {
@@ -347,7 +377,7 @@ public class Game {
         blueTrophy = ImageIO.read(fileArray[6]).getScaledInstance(90, 90, Image.SCALE_SMOOTH);
     }
 
-    // Open dialog that show who win the game with options to play agin or exit.
+    // Open dialog that show the winner of the game with options to play again / replay / exit.
     public static void winnerDialog(String winnerName) {
         int response;
         ImageIcon icon = new ImageIcon("Images/trophy.png");
@@ -362,15 +392,13 @@ public class Game {
             UIManager.put("OptionPane.messageFont", new Font("Arial", Font.BOLD, 14));
         }
 
-        //if the player use undo button - He cant use replay button
-        if(Board.redoStack.isEmpty())
-        {
-        response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
-                JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, optionsOne, optionsOne[0]);
-        }else{
+        // if the player used undo button - He cant use replay button
+        if (Board.redoStack.isEmpty()) {
             response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
-            JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, optionsTwo, optionsTwo[0]);
-           
+                    JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, optionsOne, optionsOne[0]);
+        } else {
+            response = JOptionPane.showOptionDialog(null, winnerName + " WIN.", "Game Settings",
+                    JOptionPane.PLAIN_MESSAGE, JOptionPane.INFORMATION_MESSAGE, icon, optionsTwo, optionsTwo[0]);
         }
 
         switch (response) {
@@ -387,17 +415,14 @@ public class Game {
                 }
                 break;
             case 1:
-                if(!Board.redoStack.isEmpty())
-                {
+                if (!Board.redoStack.isEmpty()) {
                     System.exit(0);
-                }
-                else{
-                Board.replayGame();
+                } else {
+                    Board.replayGame();
                 }
                 break;
-
             case 2:
-            System.exit(0);
+                System.exit(0);
                 break;
             default:
                 break;
@@ -406,11 +431,21 @@ public class Game {
 
     // Dialog that open if the end with tie
     public static void endGameDialog() {
+        int response;
         UIManager.put("OptionPane.messageForeground", new Color(255, 204, 0));
+        UIManager.put("OptionPane.messageFont", new Font("Arial", Font.BOLD, 14));
 
-        String[] options = { "Play again", "Exit" };
-        int response = JOptionPane.showOptionDialog(null, "Tie", "The board is full", JOptionPane.WARNING_MESSAGE,
-                JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+        String[] optionsOne = { "Play again", "Replay", "Exit" };
+        String[] optionsTwo = { "Play again", "Exit" };
+
+        // if the player used undo button - He cant use replay button
+        if (Board.redoStack.isEmpty()) {
+            response = JOptionPane.showOptionDialog(null, "Tie", "The board is full", JOptionPane.WARNING_MESSAGE,
+                    JOptionPane.INFORMATION_MESSAGE, null, optionsOne, optionsOne[0]);
+        } else {
+            response = JOptionPane.showOptionDialog(null, "Tie", "The board is full", JOptionPane.WARNING_MESSAGE,
+                    JOptionPane.INFORMATION_MESSAGE, null, optionsTwo, optionsTwo[0]);
+        }
 
         switch (response) {
             case -1:
@@ -427,6 +462,14 @@ public class Game {
                 }
                 break;
             case 1:
+                if (!Board.redoStack.isEmpty()) {
+                    System.exit(0);
+                } else {
+                    Board.replayGame();
+                }
+                break;
+
+            case 2:
                 System.exit(0);
                 break;
 

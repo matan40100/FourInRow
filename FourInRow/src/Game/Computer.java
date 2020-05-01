@@ -13,9 +13,9 @@ public class Computer {
 
 	private int bestCol;
 	private int count = 0;
-	int Iterations = 0;
+	private int Iterations = 0;
 
-
+	//Constructor
 	public Computer(int ID, String name, int level, int algorithm, Image image, Image winnerImage) {
 		this.ID = ID;
 		this.name = name;
@@ -23,7 +23,6 @@ public class Computer {
 		this.algorithm = algorithm;
 		this.image = image;
 		this.winnerImage = winnerImage;
-
 	}
 
 	public int gradeRow(int row, int column) {
@@ -428,20 +427,23 @@ public class Computer {
 		
 		for (int column = 0; column < Board.numOfColumn; column++) {
 			if (findPotentialWin(Board.currentRowIndex[column], column)) {
-				Board.updateBoard(column, ID, Game.HUMAN_VS_COMPUTER, this.image);
+				Board.animate(column, this.image);
+				Board.updateBoard(column, ID, Game.HUMAN_VS_COMPUTER);
 				Board.showWinnerSequence(this.winnerImage);
 				Game.winnerDialog(name);
 				return;
 			} else if (findPotentialLose(Board.currentRowIndex[column], column)) {
-				Board.updateBoard(column, ID, Game.HUMAN_VS_COMPUTER, this.image);
+				Board.animate(column, image);
+				Board.updateBoard(column, ID, Game.HUMAN_VS_COMPUTER);
 				Board.currentRowIndex[column]--;
 				return;
 			}
 		}
-
+		//If Computer start then computer use diffrent game strategy in few moves
 		if (Game.startPlayer == ID && count < Board.numOfRow / 2) {
 			int bestColumn = findPotentialSpace();
-			Board.updateBoard(bestColumn, ID, Game.HUMAN_VS_COMPUTER, image);
+			Board.animate(bestColumn, this.image);
+			Board.updateBoard(bestColumn, ID, Game.HUMAN_VS_COMPUTER);
 			Board.currentRowIndex[bestColumn]--;
 			count++;
 		} else {
@@ -455,7 +457,8 @@ public class Computer {
 				System.out.println("Iterations: " + Iterations);
 				Iterations = 0;
 			}
-			Board.updateBoard(bestCol, ID, Game.HUMAN_VS_COMPUTER, image);
+			Board.animate(bestCol, this.image);
+			Board.updateBoard(bestCol, ID, Game.HUMAN_VS_COMPUTER);
 			Board.currentRowIndex[bestCol]--;	
 			if (Board.isBoardFull()) {
 				Game.endGameDialog();
