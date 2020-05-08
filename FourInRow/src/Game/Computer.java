@@ -1,6 +1,6 @@
 package Game;
 
-import java.awt.*;
+import java.awt.Image;
 import java.util.Arrays;
 
 public class Computer {
@@ -464,7 +464,10 @@ public class Computer {
 				Game.endGameDialog();
 			}
 		}
+		Board.resetButton.setEnabled(true);
 		Board.undoButton.setEnabled(true);
+		Board.redoButton.setEnabled(true);
+		Board.saveGameButton.setEnabled(true);
 	}
 
 	public int getLevel() {

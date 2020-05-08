@@ -33,8 +33,12 @@ public class Board {
 	protected static Stack<Integer> undoStack;
 	protected static Stack<Integer> redoStack;
 	protected static Queue<Integer> replayQueue;
+
+	protected static JButton menuButton;
+	protected static JButton resetButton;
 	protected static JButton undoButton;
 	protected static JButton redoButton;
+	protected static JButton saveGameButton;
 
 	// Constructor for board.
 	public Board(int numOfRow, int numOfColumn) {
@@ -121,7 +125,7 @@ public class Board {
 		optionsJPanel.setBackground(Color.WHITE);
 
 		// Menu button
-		JButton menuButton = new JButton("Menu");
+		menuButton = new JButton("Menu");
 		menuButton.addActionListener(e -> {
 			boardFrame.dispose();
 			Game.main(null);
@@ -129,7 +133,7 @@ public class Board {
 		});
 
 		// Rest button
-		JButton resetButton = new JButton("Reset");
+		resetButton = new JButton("Reset");
 		resetButton.addActionListener(e -> {
 			boardFrame.dispose();
 			if (Game.gameType == Game.HUMAN_VS_HUMAN) {
@@ -154,7 +158,7 @@ public class Board {
 		});
 
 		// Save matrix button
-		JButton saveGameButton = new JButton("Save Game");
+		saveGameButton = new JButton("Save Game");
 		saveGameButton.addActionListener(e -> {
 			saveGame();
 		});
@@ -308,7 +312,6 @@ public class Board {
 					currentRowIndex[lastColumn]++;
 				}
 			}
-
 			// Update current turn
 			Game.turn = lastTurn;
 			changeTurnIcon(Game.turn);

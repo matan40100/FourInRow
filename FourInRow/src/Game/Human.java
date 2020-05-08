@@ -1,6 +1,6 @@
 package Game;
 
-import java.awt.*;
+import java.awt.Image;
 
 public class Human {
     private int ID;
@@ -37,11 +37,13 @@ public class Human {
                 }
 
                 if (Game.gameType == Game.HUMAN_VS_COMPUTER) {
+                    Board.resetButton.setEnabled(false);
                     Board.undoButton.setEnabled(false);
+                    Board.redoButton.setEnabled(false);
+                    Board.saveGameButton.setEnabled(false);
                 }
 
             }
         }).start();
-        ;
     }
 }

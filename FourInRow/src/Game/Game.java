@@ -17,8 +17,8 @@ import java.util.Queue;
 public class Game {
     /**
      * @author Matan
-     * @version 3.5
-     * @since 1.5.2020
+     * @version 3.6
+     * @since 8.5.2020
      */
 
     // Free space - 0, Player One(RED) - 1, Player Two(BLUE) - 2, Computer - 3
@@ -132,6 +132,7 @@ public class Game {
             this.gameBoard = new Board(numOfRow, numOfColumn, logicalBoard, currentRowIndex, undoStack, redoStack,
                     replayQueue);
             Board.changeTurnIcon(turn);
+            
         } else if (gameType == HUMAN_VS_COMPUTER) {
             Game.computer = new Computer(COMPUTER, "Computer", level, algorithm, imgRed, redTrophy);
             Game.humanOne = new Human(HUMAN, "Human", imgBlue, blueTrophy);
