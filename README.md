@@ -1,1 +1,1 @@
-# FourInRow against computer
+# Four in row game against computer
