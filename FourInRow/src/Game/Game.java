@@ -18,7 +18,6 @@ public class Game {
     /**
      * @author Matan
      * @version 3.6
-     * @since 8.5.2020
      */
 
     // Free space - 0, Player One(RED) - 1, Player Two(BLUE) - 2, Computer - 3
